@@ -1,0 +1,424 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  author
+  reviewer
+  editor
+  chief_editor
+  admin
+}
+
+enum EditorCapability {
+  MANAGE_WORKFLOWS
+  ASSIGN_REVIEWERS
+  MANAGE_QUEUE
+  MANAGE_EMAILS
+  VIEW_CHIEF_EDITOR_QUEUE
+}
+
+enum ArticleStatus {
+  draft
+  submitted
+  pending_editorial_check
+  awaiting_reviewer_assignment
+  under_review
+  review_completed
+  minor_revision_requested
+  major_revision_requested
+  resubmitted
+  editor_recommended_accept
+  editor_recommended_reject
+  awaiting_chief_editor_decision
+  accepted
+  rejected
+  scheduled_for_publication
+  published
+}
+
+enum ReviewRecommendation {
+  accept
+  minor_revision
+  major_revision
+  reject
+}
+
+enum NotificationType {
+  workflow
+  review
+  editorial
+  publication
+  system
+}
+
+enum DecisionType {
+  accept
+  reject
+  hold
+}
+
+enum SubmissionType {
+  initial
+  revision
+  commissioned
+}
+
+enum AttachmentKind {
+  featured_image
+  avatar
+  article_attachment
+  issue_cover
+  issue_pdf
+}
+
+enum EmailLogStatus {
+  queued
+  sent
+  failed
+}
+
+enum ReviewerAssignmentStatus {
+  assigned
+  submitted
+  declined
+  expired
+}
+
+model Profile {
+  id               String               @id @default(uuid()) @db.Uuid
+  authUserId       String               @unique @db.Uuid
+  email            String               @unique
+  fullName         String
+  displayName      String?
+  initials         String
+  headline         String?
+  biography        String?
+  affiliation      String?
+  avatarPath       String?
+  primaryRole      UserRole
+  capabilities     EditorCapability[]
+  isActive         Boolean              @default(true)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  authoredArticles Article[]            @relation("ArticleAuthor")
+  versionsCreated  ArticleVersion[]     @relation("VersionAuthor")
+  submissions      Submission[]
+  reviewerAssignments ReviewerAssignment[] @relation("ReviewerAssignments")
+  assignedReviews  ReviewerAssignment[] @relation("AssignedByEditor")
+  reviews          Review[]             @relation("ReviewAuthor")
+  receivedEmails   EmailLog[]           @relation("EmailRecipient")
+  editorialNotes   EditorialNote[]
+  chiefDecisions   ChiefEditorDecision[] @relation("ChiefEditorActor")
+  notifications    Notification[]
+  emailLogs        EmailLog[]           @relation("EmailTriggeredBy")
+  attachments      Attachment[]         @relation("AttachmentOwner")
+  statusEvents     ArticleStatusHistory[] @relation("StatusActor")
+
+  @@index([primaryRole, createdAt])
+}
+
+model Category {
+  id          String    @id @default(uuid()) @db.Uuid
+  slug        String    @unique
+  name        String
+  accent      String?
+  description String?
+  intro       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  articles    Article[]
+}
+
+model Tag {
+  id         String       @id @default(uuid()) @db.Uuid
+  slug       String       @unique
+  name       String       @unique
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  articleTags ArticleTag[]
+}
+
+model Article {
+  id                     String                @id @default(uuid()) @db.Uuid
+  slug                   String                @unique
+  title                  String
+  subtitle               String?
+  excerpt                String?
+  status                 ArticleStatus         @default(draft)
+  featuredImagePath      String?
+  coverTone              String?
+  coverMotif             String?
+  readingTimeMinutes     Int?
+  hero                   Boolean               @default(false)
+  featured               Boolean               @default(false)
+  editorsPick            Boolean               @default(false)
+  publishedAt            DateTime?
+  scheduledForPublicationAt DateTime?
+  currentVersionNumber   Int                   @default(1)
+  authorId               String                @db.Uuid
+  categoryId             String?               @db.Uuid
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  author                 Profile               @relation("ArticleAuthor", fields: [authorId], references: [id])
+  category               Category?             @relation(fields: [categoryId], references: [id])
+  versions               ArticleVersion[]
+  statusHistory          ArticleStatusHistory[]
+  submissions            Submission[]
+  tags                   ArticleTag[]
+  issueArticles          IssueArticle[]
+  reviewerAssignments    ReviewerAssignment[]
+  reviews                Review[]
+  editorialNotes         EditorialNote[]
+  chiefEditorDecisions   ChiefEditorDecision[]
+  attachments            Attachment[]
+
+  @@index([status, updatedAt])
+  @@index([authorId, status])
+  @@index([categoryId, publishedAt])
+}
+
+model ArticleVersion {
+  id               String    @id @default(uuid()) @db.Uuid
+  articleId        String    @db.Uuid
+  versionNumber    Int
+  title            String
+  subtitle         String?
+  excerpt          String?
+  bodyJson         Json
+  referencesJson   Json?
+  changeSummary    String?
+  featuredImagePath String?
+  createdById      String    @db.Uuid
+  isCurrent        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  article          Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdBy        Profile   @relation("VersionAuthor", fields: [createdById], references: [id])
+
+  @@unique([articleId, versionNumber])
+  @@index([articleId, createdAt])
+}
+
+model ArticleStatusHistory {
+  id          String        @id @default(uuid()) @db.Uuid
+  articleId   String        @db.Uuid
+  actorId     String?       @db.Uuid
+  fromStatus  ArticleStatus?
+  toStatus    ArticleStatus
+  note        String?
+  createdAt   DateTime      @default(now())
+  article     Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  actor       Profile?      @relation("StatusActor", fields: [actorId], references: [id])
+
+  @@index([articleId, createdAt])
+  @@index([actorId, createdAt])
+}
+
+model Submission {
+  id            String         @id @default(uuid()) @db.Uuid
+  articleId     String         @db.Uuid
+  submittedById String         @db.Uuid
+  submissionType SubmissionType @default(initial)
+  coverLetter   String?
+  createdAt     DateTime       @default(now())
+  article       Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  submittedBy   Profile        @relation(fields: [submittedById], references: [id])
+
+  @@index([articleId, createdAt])
+  @@index([submittedById, createdAt])
+}
+
+model ArticleTag {
+  articleId   String   @db.Uuid
+  tagId       String   @db.Uuid
+  createdAt   DateTime @default(now())
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag         Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+}
+
+model Issue {
+  id            String       @id @default(uuid()) @db.Uuid
+  slug          String       @unique
+  issueNumber   String       @unique
+  title         String
+  description   String?
+  releasedAt    DateTime?
+  coverImagePath String?
+  editorNote    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  issueArticles IssueArticle[]
+  attachments   Attachment[]
+
+  @@index([releasedAt])
+}
+
+model IssueArticle {
+  issueId     String   @db.Uuid
+  articleId   String   @db.Uuid
+  sortOrder   Int      @default(0)
+  highlight   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@id([issueId, articleId])
+  @@index([issueId, sortOrder])
+}
+
+model ReviewerAssignment {
+  id             String                   @id @default(uuid()) @db.Uuid
+  articleId       String                  @db.Uuid
+  reviewerId      String                  @db.Uuid
+  assignedById    String                  @db.Uuid
+  dueAt           DateTime?
+  status          ReviewerAssignmentStatus @default(assigned)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  article         Article                 @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  reviewer        Profile                 @relation("ReviewerAssignments", fields: [reviewerId], references: [id])
+  assignedBy      Profile                 @relation("AssignedByEditor", fields: [assignedById], references: [id])
+  review          Review?
+
+  @@unique([articleId, reviewerId])
+  @@index([reviewerId, status, dueAt])
+  @@index([articleId, status])
+}
+
+model Review {
+  id                 String               @id @default(uuid()) @db.Uuid
+  assignmentId       String               @unique @db.Uuid
+  articleId          String               @db.Uuid
+  reviewerId         String               @db.Uuid
+  recommendation     ReviewRecommendation
+  summary            String
+  confidentialNote   String?
+  submittedAt        DateTime             @default(now())
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  assignment         ReviewerAssignment   @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  article            Article              @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  reviewer           Profile              @relation("ReviewAuthor", fields: [reviewerId], references: [id])
+
+  @@index([articleId, submittedAt])
+  @@index([reviewerId, submittedAt])
+}
+
+model EditorialNote {
+  id          String   @id @default(uuid()) @db.Uuid
+  articleId    String   @db.Uuid
+  authorId     String   @db.Uuid
+  title        String?
+  body         String
+  isInternal   Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  article      Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author       Profile  @relation(fields: [authorId], references: [id])
+
+  @@index([articleId, createdAt])
+}
+
+model ChiefEditorDecision {
+  id           String       @id @default(uuid()) @db.Uuid
+  articleId     String      @db.Uuid
+  decidedById   String      @db.Uuid
+  decision      DecisionType
+  rationale     String?
+  decidedAt     DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  article       Article     @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  decidedBy     Profile     @relation("ChiefEditorActor", fields: [decidedById], references: [id])
+
+  @@index([articleId, decidedAt])
+}
+
+model Notification {
+  id           String           @id @default(uuid()) @db.Uuid
+  recipientId   String           @db.Uuid
+  type          NotificationType
+  title         String
+  body          String
+  dataJson      Json?
+  readAt        DateTime?
+  createdAt     DateTime         @default(now())
+  recipient     Profile          @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt, createdAt])
+}
+
+model EmailTemplate {
+  id               String     @id @default(uuid()) @db.Uuid
+  slug             String     @unique
+  name             String
+  subjectTemplate  String
+  preheaderTemplate String?
+  bodyHtml         String
+  bodyText         String?
+  isSystem         Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  emailLogs        EmailLog[]
+}
+
+model EmailLog {
+  id              String         @id @default(uuid()) @db.Uuid
+  templateId       String?        @db.Uuid
+  recipientId      String?        @db.Uuid
+  recipientEmail   String
+  subject          String
+  preheader        String?
+  bodyHtml         String?
+  bodyText         String?
+  status           EmailLogStatus @default(queued)
+  triggeredById    String?        @db.Uuid
+  providerMessageId String?
+  errorMessage     String?
+  payloadJson      Json?
+  createdAt        DateTime       @default(now())
+  sentAt           DateTime?
+  template         EmailTemplate? @relation(fields: [templateId], references: [id])
+  recipient        Profile?       @relation("EmailRecipient", fields: [recipientId], references: [id])
+  triggeredBy      Profile?       @relation("EmailTriggeredBy", fields: [triggeredById], references: [id])
+
+  @@index([recipientId, createdAt])
+  @@index([status, createdAt])
+}
+
+model Attachment {
+  id           String         @id @default(uuid()) @db.Uuid
+  ownerId       String?        @db.Uuid
+  articleId     String?        @db.Uuid
+  issueId       String?        @db.Uuid
+  kind          AttachmentKind
+  storagePath   String
+  fileName      String
+  mimeType      String?
+  byteSize      Int?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  owner         Profile?       @relation("AttachmentOwner", fields: [ownerId], references: [id])
+  article       Article?       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  issue         Issue?         @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([kind, createdAt])
+  @@index([articleId, kind])
+  @@index([issueId, kind])
+}
+
+model AppSetting {
+  id         String   @id @default(uuid()) @db.Uuid
+  key        String   @unique
+  valueJson  Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
