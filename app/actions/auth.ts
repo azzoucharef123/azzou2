@@ -46,6 +46,8 @@ export async function loginAction(formData: FormData) {
 export async function signupAction(formData: FormData) {
   const payload = signupSchema.safeParse({
     fullName: getField(formData, "fullName"),
+    affiliation: getField(formData, "affiliation"),
+    headline: getField(formData, "headline"),
     email: getField(formData, "email").toLowerCase(),
     password: getField(formData, "password"),
     redirectTo: getField(formData, "redirectTo")
@@ -66,7 +68,9 @@ export async function signupAction(formData: FormData) {
       options: {
         data: {
           full_name: payload.data.fullName,
-          role: "author"
+          role: "author",
+          affiliation: payload.data.affiliation,
+          headline: payload.data.headline
         }
       }
     });

@@ -17,6 +17,8 @@ export async function ensureProfileForSupabaseUser(user: User, role: UserRole = 
     (user.user_metadata?.name as string | undefined) ??
     user.email?.split("@")[0] ??
     "Science Contributor";
+  const affiliation = (user.user_metadata?.affiliation as string | undefined) ?? undefined;
+  const headline = (user.user_metadata?.headline as string | undefined) ?? undefined;
 
   const profile = await upsertProfile({
     authUserId: user.id,
@@ -24,7 +26,9 @@ export async function ensureProfileForSupabaseUser(user: User, role: UserRole = 
     fullName,
     initials: getInitials(fullName),
     primaryRole: role,
-    capabilities: getDefaultCapabilities(role)
+    capabilities: getDefaultCapabilities(role),
+    affiliation,
+    headline
   });
 
   return mapUserToSession(user, profile);

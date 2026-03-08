@@ -66,6 +66,27 @@ export default async function SignupPage({
             <input autoComplete="name" className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45" name="fullName" required type="text" />
           </label>
           <label className="block space-y-2 text-sm font-medium text-foreground">
+            Institutional affiliation
+            <input
+              autoComplete="organization"
+              className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45"
+              name="affiliation"
+              placeholder="e.g., Cavendish Laboratory, University of Cambridge"
+              required
+              type="text"
+            />
+          </label>
+          <label className="block space-y-2 text-sm font-medium text-foreground">
+            Professional headline (optional)
+            <input
+              autoComplete="organization-title"
+              className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45"
+              name="headline"
+              placeholder="e.g., Experimental physicist focused on quantum sensing"
+              type="text"
+            />
+          </label>
+          <label className="block space-y-2 text-sm font-medium text-foreground">
             Email address
             <input autoComplete="email" className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45" name="email" required type="email" />
           </label>

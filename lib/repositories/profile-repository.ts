@@ -33,6 +33,9 @@ export async function upsertProfile(
     initials: string;
     primaryRole: UserRole;
     capabilities?: Prisma.ProfileCreateInput["capabilities"];
+    affiliation?: string;
+    headline?: string;
+    biography?: string;
   },
   db: DbClient = getPrisma()
 ) {
@@ -46,14 +49,20 @@ export async function upsertProfile(
       fullName: input.fullName,
       initials: input.initials,
       primaryRole: input.primaryRole,
-      capabilities: input.capabilities ?? []
+      capabilities: input.capabilities ?? [],
+      affiliation: input.affiliation,
+      headline: input.headline,
+      biography: input.biography
     },
     update: {
       email: input.email,
       fullName: input.fullName,
       initials: input.initials,
       primaryRole: input.primaryRole,
-      capabilities: input.capabilities ?? []
+      capabilities: input.capabilities ?? [],
+      affiliation: input.affiliation,
+      headline: input.headline,
+      biography: input.biography
     }
   });
 }

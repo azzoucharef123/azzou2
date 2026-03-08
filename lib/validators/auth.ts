@@ -10,6 +10,8 @@ export const signupSchema = z.object({
   fullName: z.string().min(2).max(120),
   email: z.string().email(),
   password: z.string().min(8),
+  affiliation: z.string().min(2).max(160),
+  headline: z.string().min(2).max(160).optional(),
   redirectTo: z.string().optional()
 });
 
