@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { getSession } from "@/lib/auth";
 import { getApprovalItems } from "@/lib/platform";
 import { PlatformRole } from "@/types/platform";
-import { ApprovalDecisionPanel } from "@/components/platform/approval-decision-panel";
 import { FilterChipBar } from "@/components/platform/filter-chip-bar";
 import { MetricCard } from "@/components/platform/metric-card";
 import { PlatformAccessState } from "@/components/platform/platform-access-state";
@@ -10,6 +10,13 @@ import { StatusBadge } from "@/components/platform/status-badge";
 import { TableCard } from "@/components/platform/table-card";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
+
+const ApprovalDecisionPanel = dynamic(
+  () => import("@/components/platform/approval-decision-panel").then((mod) => mod.ApprovalDecisionPanel),
+  {
+    loading: () => <div className="platform-panel rounded-[2rem] p-6 sm:p-7"><div className="h-56 rounded-[1.4rem] bg-white/45 dark:bg-slate-950/35" /></div>
+  }
+);
 
 export const metadata: Metadata = {
   title: "Chief Editor Approvals",

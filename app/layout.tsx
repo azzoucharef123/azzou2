@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
-import { ThemeProvider } from "@/components/providers/theme-provider";
 import { siteConfig } from "@/data/site";
 import "./globals.css";
 
@@ -33,13 +32,27 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-background text-foreground antialiased">
-        <ThemeProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
-        </ThemeProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                const key = "pc-microscope-theme";
+                const stored = window.localStorage.getItem(key);
+                const resolved = stored === "light" || stored === "dark"
+                  ? stored
+                  : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+                const root = document.documentElement;
+                root.classList.toggle("dark", resolved === "dark");
+                root.style.colorScheme = resolved;
+              })();
+            `
+          }}
+        />
+        <div className="relative flex min-h-screen flex-col">
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+        </div>
       </body>
     </html>
   );

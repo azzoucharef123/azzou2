@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import Script from "next/script";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Clock3 } from "lucide-react";
@@ -6,7 +7,6 @@ import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/ui/article-card";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { CategoryBadge } from "@/components/ui/category-badge";
-import { ReadingProgress } from "@/components/ui/reading-progress";
 import { Reveal } from "@/components/ui/reveal";
 import { ScienceCover } from "@/components/ui/science-cover";
 import { ShareButtons } from "@/components/ui/share-buttons";
@@ -21,6 +21,13 @@ import {
   getRelatedArticles
 } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
+
+const ArticleInteractions = dynamic(
+  () => import("@/components/ui/article-interactions").then((mod) => mod.ArticleInteractions),
+  {
+    loading: () => null
+  }
+);
 
 export function generateStaticParams() {
   return getArticles().map((article) => ({ slug: article.slug }));
@@ -83,7 +90,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
-      <ReadingProgress />
       <Script id={`article-${article.slug}-jsonld`} strategy="beforeInteractive" type="application/ld+json">
         {JSON.stringify(jsonLd)}
       </Script>
@@ -126,7 +132,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   {readingTime} min read
                 </span>
               </div>
-              <ShareButtons title={article.title} />
+              <ShareButtons title={article.title} url={articleUrl} />
             </div>
             <ScienceCover
               category={category.name}
@@ -229,6 +235,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </div>
         </section>
       </div>
+      <ArticleInteractions />
     </>
   );
 }

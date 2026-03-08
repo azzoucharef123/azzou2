@@ -90,6 +90,7 @@ Optional:
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
 - `DEV_ENABLE_PLATFORM_IMPERSONATION`
+- `PORT`
 
 Security notes:
 
@@ -97,6 +98,7 @@ Security notes:
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` to the client
 - Use the Supabase pooler connection string for `DATABASE_URL`
 - Use the direct database connection string for `DIRECT_URL`
+- Railway provides `PORT` automatically in production; the local default is `3000`
 
 ## Setup Instructions
 
@@ -192,6 +194,37 @@ npm run db:migrate:deploy
 6. Deploy to Vercel
 
 More deployment detail is available in [docs/DEPLOYMENT.md](/d:/journal%202/docs/DEPLOYMENT.md).
+
+## Deploying on Railway
+
+This repository is prepared to run on Railway with `npm run build` and `npm run start`.
+
+What is already configured:
+
+- [railway.json](/d:/journal%202/railway.json) defines the build command, start command, pre-deploy migration command, and health check path
+- [scripts/start.mjs](/d:/journal%202/scripts/start.mjs) starts Next.js with `process.env.PORT || 3000`
+- [app/api/healthz/route.ts](/d:/journal%202/app/api/healthz/route.ts) provides a startup-friendly health check
+- production migrations are available through `npm run db:migrate:deploy`
+
+Railway deployment steps:
+
+1. Push the repository to GitHub.
+2. Create a new Railway project and connect the GitHub repository.
+3. Add the required environment variables from `.env.example`.
+4. Ensure `DATABASE_URL` uses your production Postgres runtime connection and `DIRECT_URL` uses the direct migration connection.
+5. Deploy the service. Railway will build with `npm run build`, run `npm run db:migrate:deploy`, and start the app with `npm run start`.
+
+Manual actions you still need:
+
+- create the Supabase project and configure Auth redirect URLs
+- provision the production database and set `DATABASE_URL` and `DIRECT_URL`
+- optionally add `RESEND_API_KEY` and a verified `EMAIL_FROM` sender when enabling transactional email
+
+Operational notes:
+
+- the app binds to Railway's injected `PORT` automatically
+- the health endpoint is available at `/api/healthz`
+- if auth or database env vars are incomplete, the app starts in a degraded but non-crashing state and protected features fail with clear configuration errors
 
 ## API and Backend Notes
 

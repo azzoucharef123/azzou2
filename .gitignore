@@ -25,6 +25,7 @@ tsconfig.tsbuildinfo
 
 # deployment
 .vercel/
+.railway/
 
 # logs
 *.log

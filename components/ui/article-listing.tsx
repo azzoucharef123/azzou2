@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { startTransition, useDeferredValue, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Article, Category } from "@/types/content";
 import { ArticleCard } from "@/components/ui/article-card";
@@ -26,18 +26,27 @@ export function ArticleListing({
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [dateFilter, setDateFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+  const deferredQuery = useDeferredValue(query);
+
+  const preparedArticles = useMemo(
+    () =>
+      articles.map((article) => ({
+        article,
+        publishedAtMs: +new Date(article.publishedAt),
+        searchTarget: [article.title, article.subtitle, article.excerpt, ...article.tags].join(" ").toLowerCase()
+      })),
+    [articles]
+  );
 
   const filteredArticles = useMemo(() => {
     const now = new Date("2026-03-07");
+    const byQuery = deferredQuery.trim().toLowerCase();
 
-    const byQuery = query.trim().toLowerCase();
-
-    const matches = articles.filter((article) => {
-      const searchTarget = [article.title, article.subtitle, article.excerpt, ...article.tags].join(" ").toLowerCase();
+    const matches = preparedArticles
+      .filter(({ article, publishedAtMs, searchTarget }) => {
       const queryMatch = byQuery ? searchTarget.includes(byQuery) : true;
       const categoryMatch = selectedCategory === "all" ? true : article.categorySlug === selectedCategory;
-
-      const ageInDays = Math.floor((+now - +new Date(article.publishedAt)) / (1000 * 60 * 60 * 24));
+      const ageInDays = Math.floor((+now - publishedAtMs) / (1000 * 60 * 60 * 24));
       const dateMatch =
         dateFilter === "30"
           ? ageInDays <= 30
@@ -48,14 +57,15 @@ export function ArticleListing({
               : true;
 
       return queryMatch && categoryMatch && dateMatch;
-    });
+    })
+      .map(({ article }) => article);
 
     if (!featuredFirst) {
       return matches;
     }
 
     return [...matches].sort((a, b) => Number(b.featured) - Number(a.featured));
-  }, [articles, dateFilter, featuredFirst, query, selectedCategory]);
+  }, [dateFilter, deferredQuery, featuredFirst, preparedArticles, selectedCategory]);
 
   const visibleArticles = filteredArticles.slice(0, visibleCount);
 
@@ -70,8 +80,11 @@ export function ArticleListing({
               <input
                 className="focus-ring w-full bg-transparent text-sm outline-none placeholder:text-muted"
                 onChange={(event) => {
-                  setVisibleCount(INITIAL_COUNT);
-                  setQuery(event.target.value);
+                  const value = event.target.value;
+                  startTransition(() => {
+                    setVisibleCount(INITIAL_COUNT);
+                    setQuery(value);
+                  });
                 }}
                 placeholder="Search by title, topic, or tag"
                 value={query}
@@ -83,8 +96,11 @@ export function ArticleListing({
             <select
               className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45"
               onChange={(event) => {
-                setVisibleCount(INITIAL_COUNT);
-                setSelectedCategory(event.target.value);
+                const value = event.target.value;
+                startTransition(() => {
+                  setVisibleCount(INITIAL_COUNT);
+                  setSelectedCategory(value);
+                });
               }}
               value={selectedCategory}
             >
@@ -101,8 +117,11 @@ export function ArticleListing({
             <select
               className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45"
               onChange={(event) => {
-                setVisibleCount(INITIAL_COUNT);
-                setDateFilter(event.target.value);
+                const value = event.target.value;
+                startTransition(() => {
+                  setVisibleCount(INITIAL_COUNT);
+                  setDateFilter(value);
+                });
               }}
               value={dateFilter}
             >

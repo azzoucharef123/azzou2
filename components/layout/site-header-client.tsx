@@ -1,18 +1,27 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 import { mainNavigation, siteConfig } from "@/data/site";
-import { AuthSession } from "@/lib/auth";
+import { useAuthSession } from "@/components/auth/use-auth-session";
 import { getPlatformRoleLabel } from "@/lib/platform";
-import { ProfileMenu } from "@/components/auth/profile-menu";
 import { ButtonLink } from "@/components/ui/button";
-import { NavSearch } from "@/components/ui/nav-search";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
-export function SiteHeaderClient({ session }: { session: AuthSession | null }) {
+const ThemeToggle = dynamic(() => import("@/components/ui/theme-toggle").then((mod) => mod.ThemeToggle), {
+  ssr: false,
+  loading: () => <span className="inline-flex h-10 w-10 rounded-full border border-border bg-white/50 dark:bg-slate-950/40" />
+});
+
+const ProfileMenu = dynamic(() => import("@/components/auth/profile-menu").then((mod) => mod.ProfileMenu), {
+  ssr: false,
+  loading: () => <span className="hidden h-11 w-11 rounded-full border border-border bg-white/50 lg:block dark:bg-slate-950/40" />
+});
+
+export function SiteHeaderClient() {
   const [open, setOpen] = useState(false);
+  const { session, loading } = useAuthSession();
   const navigation = session ? [...mainNavigation, { label: "Platform", href: "/platform" }] : mainNavigation;
   const roleLabel = session ? getPlatformRoleLabel(session.activeRole) : null;
   const primaryAction = session ? (session.activeRole === "author" ? { href: "/submit", label: "Submit Article" } : { href: "/platform", label: "Open Platform" }) : null;
@@ -35,7 +44,21 @@ export function SiteHeaderClient({ session }: { session: AuthSession | null }) {
             </nav>
           </div>
           <div className="flex items-center gap-2">
-            <NavSearch />
+            <form action="/articles" className="hidden lg:block" role="search">
+              <label className="sr-only" htmlFor="nav-search">
+                Search articles
+              </label>
+              <div className="flex items-center gap-2 rounded-full border border-border bg-white/70 px-3 py-2 dark:bg-slate-950/45">
+                <Search className="h-4 w-4 text-muted" />
+                <input
+                  className="focus-ring w-40 bg-transparent text-sm outline-none placeholder:text-muted"
+                  id="nav-search"
+                  name="q"
+                  placeholder="Search articles"
+                  type="search"
+                />
+              </div>
+            </form>
             <Link
               aria-label="Search articles"
               className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/70 text-foreground hover:bg-white lg:hidden dark:bg-slate-950/45 dark:hover:bg-slate-900"
@@ -49,7 +72,9 @@ export function SiteHeaderClient({ session }: { session: AuthSession | null }) {
                 {roleLabel}
               </span>
             ) : null}
-            {session ? (
+            {loading ? (
+              <span className="hidden h-11 w-28 rounded-full border border-border bg-white/50 lg:inline-flex dark:bg-slate-950/40" />
+            ) : session ? (
               <>
                 {primaryAction ? (
                   <ButtonLink className="hidden lg:inline-flex" href={primaryAction.href} variant="secondary">
@@ -84,7 +109,12 @@ export function SiteHeaderClient({ session }: { session: AuthSession | null }) {
         <div className="shell-wide pt-3 lg:hidden">
           <div className="glass-panel flex flex-col gap-4 rounded-[1.8rem] p-5">
             <div className="flex flex-col gap-3">
-              {session ? (
+              {loading ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <span className="h-12 rounded-full border border-border bg-white/50 dark:bg-slate-950/40" />
+                  <span className="h-12 rounded-full border border-border bg-white/50 dark:bg-slate-950/40" />
+                </div>
+              ) : session ? (
                 <>
                   {primaryAction ? (
                     <ButtonLink className="w-full" href={primaryAction.href} variant="secondary">

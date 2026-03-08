@@ -20,16 +20,30 @@ export function ProfileMenu({
   const primaryAction = session.activeRole === "author" ? { href: "/submit", label: "Submit Article", icon: UserRound } : { href: "/platform", label: "Open Platform", icon: PanelLeft };
 
   useEffect(() => {
+    if (!open) {
+      return;
+    }
+
     function handleClick(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     }
 
-    window.addEventListener("mousedown", handleClick);
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
 
-    return () => window.removeEventListener("mousedown", handleClick);
-  }, []);
+    window.addEventListener("mousedown", handleClick);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("mousedown", handleClick);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   if (compact) {
     return (

@@ -125,6 +125,38 @@ Configure these areas in Supabase:
 
 Current architecture keeps most business writes server-side through route handlers and services.
 
+## Railway Deployment Notes
+
+This repository also supports Railway deployment.
+
+Configured files:
+
+- `railway.json`
+- `scripts/start.mjs`
+- `app/api/healthz/route.ts`
+- `prisma/migrations/*`
+
+Recommended Railway flow:
+
+1. Create a new Railway project and connect the GitHub repository.
+2. Add the same required environment variables used for local and production setup.
+3. Ensure `DATABASE_URL` points at the runtime database connection.
+4. Ensure `DIRECT_URL` points at the direct migration connection.
+5. Deploy the app.
+
+The repository is configured so Railway can:
+
+- build with `npm run build`
+- run migrations with `npm run db:migrate:deploy`
+- start the app with `npm run start`
+- probe `/api/healthz` as a health endpoint
+
+Startup notes:
+
+- the production server binds to `process.env.PORT || 3000`
+- missing configuration does not prevent the server from starting
+- protected features still return explicit configuration errors when required env vars are absent
+
 ## Real Email Provider Next Steps
 
 Recommended provider: Resend

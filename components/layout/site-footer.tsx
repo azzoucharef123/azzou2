@@ -1,6 +1,22 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { mainNavigation, siteConfig } from "@/data/site";
-import { NewsletterForm } from "@/components/ui/newsletter-form";
+
+const NewsletterForm = dynamic(() => import("@/components/ui/newsletter-form").then((mod) => mod.NewsletterForm), {
+  loading: () => (
+    <div className="editorial-card relative overflow-hidden rounded-[2.3rem] p-6 sm:p-9">
+      <div className="space-y-4">
+        <span className="eyebrow">Newsletter</span>
+        <div className="h-12 w-2/3 rounded-2xl bg-white/50 dark:bg-slate-950/40" />
+        <div className="h-5 w-full rounded-full bg-white/40 dark:bg-slate-950/35" />
+      </div>
+      <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+        <div className="h-12 flex-1 rounded-full bg-white/50 dark:bg-slate-950/40" />
+        <div className="h-12 w-36 rounded-full bg-white/50 dark:bg-slate-950/40" />
+      </div>
+    </div>
+  )
+});
 
 export function SiteFooter() {
   return (

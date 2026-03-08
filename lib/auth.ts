@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { type User } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
 import { AuthenticationError, ConfigurationError } from "@/lib/errors";
@@ -121,7 +122,7 @@ export function mapUserToSession(user: User, profile?: {
   };
 }
 
-export async function getSession() {
+export const getSession = cache(async () => {
   if (!env.hasSupabaseAuth) {
     return null;
   }
@@ -147,7 +148,7 @@ export async function getSession() {
   });
 
   return mapUserToSession(user, profile);
-}
+});
 
 export async function requireAuthenticatedSession() {
   const session = await getSession();

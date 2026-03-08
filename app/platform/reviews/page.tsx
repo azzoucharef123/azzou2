@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { getReviewTemplates, getWorkflowItems } from "@/lib/platform";
 import { PlatformRole } from "@/types/platform";
 import { FilterChipBar } from "@/components/platform/filter-chip-bar";
 import { PlatformAccessState } from "@/components/platform/platform-access-state";
-import { ReviewFormDemo } from "@/components/platform/review-form-demo";
 import { ReviewScoreCard } from "@/components/platform/review-score-card";
 import { StatusBadge } from "@/components/platform/status-badge";
 import { TableCard } from "@/components/platform/table-card";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
+
+const ReviewFormDemo = dynamic(() => import("@/components/platform/review-form-demo").then((mod) => mod.ReviewFormDemo), {
+  loading: () => <div className="platform-panel rounded-[2rem] p-6 sm:p-7"><div className="h-72 rounded-[1.4rem] bg-white/45 dark:bg-slate-950/35" /></div>
+});
 
 export const metadata: Metadata = {
   title: "Review Forms",

@@ -1,8 +1,8 @@
 import "server-only";
-import { ArticleStatus, type Article } from "@prisma/client";
+import { ArticleStatus } from "@prisma/client";
 import { env } from "@/lib/env";
 import { getWorkflowStepLabel } from "@/lib/workflow";
-import { listArticles } from "@/lib/repositories/article-repository";
+import { listDashboardArticles } from "@/lib/repositories/article-repository";
 import { listNotificationsForSession } from "@/lib/services/notification-service";
 import { AuthSession } from "@/lib/auth";
 import { PlatformMetric } from "@/types/platform";
@@ -32,12 +32,9 @@ function statusTone(status: ArticleStatus) {
   }
 }
 
-function mapArticleToWorkflow(article: Article & {
-  author: { fullName: string };
-  category: { name: string } | null;
-  reviewerAssignments: { reviewer: { fullName: string } }[];
-  tags: { tag: { name: string } }[];
-}) {
+type DashboardArticle = Awaited<ReturnType<typeof listDashboardArticles>>[number];
+
+function mapArticleToWorkflow(article: DashboardArticle) {
   return {
     id: article.id,
     slug: article.slug,
@@ -59,18 +56,20 @@ function mapArticleToWorkflow(article: Article & {
 
 export async function getPlatformDashboardData(session: AuthSession) {
   if (!env.hasDatabaseUrl) {
+    const notifications = await listNotificationsForSession(session);
+
     return {
       metrics: fallbackRoleMetrics[session.displayDesk],
       workflows: fallbackWorkflowItems,
       approvals: fallbackApprovals,
       queue: fallbackQueue,
       reviewTemplates: fallbackReviewTemplates,
-      notifications: await listNotificationsForSession(session),
+      notifications,
       emailPreviews: fallbackEmailPreviews
     };
   }
 
-  const articles = await listArticles();
+  const [articles, notifications] = await Promise.all([listDashboardArticles(), listNotificationsForSession(session)]);
   const workflows = articles.map(mapArticleToWorkflow);
   const acceptedCount = workflows.filter((item) => item.status === "accepted" || item.status === "scheduled_for_publication").length;
   const reviewCount = workflows.filter((item) => item.status === "under_review").length;
@@ -87,7 +86,7 @@ export async function getPlatformDashboardData(session: AuthSession) {
     approvals: fallbackApprovals,
     queue: fallbackQueue,
     reviewTemplates: fallbackReviewTemplates,
-    notifications: await listNotificationsForSession(session),
+    notifications,
     emailPreviews: fallbackEmailPreviews
   };
 }

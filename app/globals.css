@@ -118,6 +118,26 @@ textarea {
     box-shadow 180ms ease;
 }
 
+.reveal {
+  --reveal-delay: 0s;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: var(--reveal-delay);
+  }
+}
+
+@keyframes reveal-up {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 ::selection {
   background: rgba(37, 99, 235, 0.18);
 }
@@ -319,4 +339,39 @@ textarea {
 
 .focus-ring {
   @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-sky-300 dark:focus-visible:ring-offset-slate-950;
+}
+
+@media (max-width: 768px) {
+  body::before {
+    display: none;
+  }
+
+  .glass-panel {
+    backdrop-filter: blur(16px);
+    box-shadow:
+      0 16px 44px rgba(15, 23, 39, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  }
+
+  .editorial-card,
+  .platform-panel {
+    box-shadow:
+      0 12px 32px rgba(15, 23, 39, 0.05),
+      0 20px 64px rgba(15, 23, 39, 0.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

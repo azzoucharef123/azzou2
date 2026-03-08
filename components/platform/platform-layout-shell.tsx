@@ -1,9 +1,30 @@
+import dynamic from "next/dynamic";
 import { Bell, ShieldCheck, Sparkles } from "lucide-react";
 import { AuthSession } from "@/lib/auth";
 import { getPlatformRoleLabel, getPlatformRoleSummary } from "@/lib/platform";
-import { PlatformSidebar } from "@/components/platform/platform-sidebar";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
+
+const PlatformSidebar = dynamic(() => import("@/components/platform/platform-sidebar").then((mod) => mod.PlatformSidebar), {
+  loading: () => (
+    <aside className="hidden xl:block">
+      <div className="sticky top-28 space-y-5">
+        <div className="platform-panel rounded-[2rem] p-6">
+          <span className="block h-4 w-28 rounded-full bg-white/45 dark:bg-slate-950/35" />
+          <span className="mt-4 block h-10 w-40 rounded-2xl bg-white/45 dark:bg-slate-950/35" />
+          <span className="mt-4 block h-20 rounded-[1.4rem] bg-white/40 dark:bg-slate-950/30" />
+        </div>
+        <div className="platform-panel rounded-[2rem] p-4">
+          <div className="grid gap-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <span className="block h-12 rounded-[1.2rem] bg-white/45 dark:bg-slate-950/35" key={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
+  )
+});
 
 export function PlatformLayoutShell({
   session,

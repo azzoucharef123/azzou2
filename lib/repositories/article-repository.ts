@@ -47,6 +47,51 @@ export async function listArticles(
   });
 }
 
+export async function listDashboardArticles(db: DbClient = getPrisma()) {
+  return db.article.findMany({
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      excerpt: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      author: {
+        select: {
+          fullName: true
+        }
+      },
+      category: {
+        select: {
+          name: true
+        }
+      },
+      reviewerAssignments: {
+        select: {
+          reviewer: {
+            select: {
+              fullName: true
+            }
+          }
+        }
+      },
+      tags: {
+        select: {
+          tag: {
+            select: {
+              name: true
+            }
+          }
+        }
+      }
+    },
+    orderBy: {
+      updatedAt: "desc"
+    }
+  });
+}
+
 export async function getArticleById(articleId: string, db: DbClient = getPrisma()) {
   return db.article.findUnique({
     where: {

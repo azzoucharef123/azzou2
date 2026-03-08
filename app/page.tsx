@@ -1,5 +1,6 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ArrowRight, BookOpenText, Microscope, Orbit, Sparkles, Waves } from "lucide-react";
+import { ArrowRight, BookOpenText, Microscope, Orbit, Waves } from "lucide-react";
 import { ArticleCard } from "@/components/ui/article-card";
 import { ButtonLink } from "@/components/ui/button";
 import { IssueCard } from "@/components/ui/issue-card";
@@ -7,23 +8,37 @@ import { PersonCard } from "@/components/ui/person-card";
 import { Reveal } from "@/components/ui/reveal";
 import { ScienceCover } from "@/components/ui/science-cover";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { getSession } from "@/lib/auth";
 import {
   getArticles,
+  getArticleCountByCategory,
   getAuthors,
-  getArticlesByCategory,
   getCategories,
   getCurrentIssue,
   getEditorsPicks,
   getFeaturedArticles,
   getHeroArticle,
-  getIssues
+  getIssues,
+  getTrendingTopics
 } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
 import { siteConfig } from "@/data/site";
 
-export default async function HomePage() {
-  const session = await getSession();
+const HomeContributionActions = dynamic(
+  () => import("@/components/auth/home-contribution-actions").then((mod) => mod.HomeContributionActions),
+  {
+    loading: () => (
+      <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div />
+        <div className="min-w-[18rem] space-y-4">
+          <span className="block h-12 rounded-full border border-border bg-white/50 dark:bg-slate-950/40" />
+          <span className="block h-12 rounded-full border border-border bg-white/50 dark:bg-slate-950/40" />
+        </div>
+      </div>
+    )
+  }
+);
+
+export default function HomePage() {
   const heroArticle = getHeroArticle();
   const featuredArticles = getFeaturedArticles().slice(0, 3);
   const latestArticles = getArticles().slice(0, 6);
@@ -33,7 +48,7 @@ export default async function HomePage() {
   const authors = getAuthors().slice(0, 3);
   const allArticles = getArticles();
   const issueCount = getIssues().length;
-  const trendingTopics = Array.from(new Set(allArticles.flatMap((article) => article.tags))).slice(0, 6);
+  const trendingTopics = getTrendingTopics(6);
   const newsroomNotes = latestArticles.slice(0, 3);
 
   return (
@@ -249,7 +264,7 @@ export default async function HomePage() {
                 <h3 className="display-title mt-6 text-[2.2rem] font-semibold leading-[0.96]">{category.name}</h3>
                 <p className="mt-3 body-copy text-lg leading-8 text-muted">{category.intro}</p>
                 <div className="mt-6 border-t border-border pt-4 text-sm text-muted">
-                  {getArticlesByCategory(category.slug).length} archived pieces
+                  {getArticleCountByCategory(category.slug)} archived pieces
                 </div>
               </Link>
             </Reveal>
@@ -325,47 +340,7 @@ export default async function HomePage() {
                   We commission writers, educators, and researchers who can combine accuracy with elegant prose. Strong submissions are evidence-led, conceptually clear, and attentive to the way science is actually practiced.
                 </p>
               </div>
-              <div className="flex flex-col gap-4 sm:flex-row lg:flex-col">
-                {session ? (
-                  <>
-                    {session.activeRole === "author" ? (
-                      <>
-                        <ButtonLink href="/submit">Submit Article</ButtonLink>
-                        <ButtonLink href="/platform" variant="secondary">
-                          Open publishing platform
-                        </ButtonLink>
-                      </>
-                    ) : (
-                      <>
-                        <ButtonLink href="/platform">Open publishing platform</ButtonLink>
-                        <ButtonLink href="/contact" variant="secondary">
-                          Contact the editorial desk
-                        </ButtonLink>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <ButtonLink href="/signup">Become an author</ButtonLink>
-                    <ButtonLink href="/login" variant="secondary">
-                      Login to submit
-                    </ButtonLink>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="relative mt-8 grid gap-4 md:grid-cols-3">
-              {(session
-                ? session.activeRole === "author"
-                  ? ["Commissioned features", "Research summaries", "Interviews & essays"]
-                  : ["Role-based dashboards", "Editorial approvals", "Production operations"]
-                : ["Author registration", "Protected submissions", "Editorial review"]
-              ).map((item) => (
-                <div className="rounded-[1.7rem] border border-border bg-white/70 p-5 text-sm font-medium text-muted dark:bg-slate-950/40" key={item}>
-                  <Sparkles className="mb-3 h-4 w-4 text-blue-700 dark:text-sky-300" />
-                  {item}
-                </div>
-              ))}
+              <HomeContributionActions />
             </div>
           </div>
         </Reveal>
