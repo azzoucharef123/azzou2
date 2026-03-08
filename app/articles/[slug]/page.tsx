@@ -24,9 +24,7 @@ import { formatDate } from "@/lib/utils";
 
 const ArticleInteractions = dynamic(
   () => import("@/components/ui/article-interactions").then((mod) => mod.ArticleInteractions),
-  {
-    loading: () => null
-  }
+  {}
 );
 
 export function generateStaticParams() {

@@ -21,6 +21,9 @@ export async function proxy(request: NextRequest) {
   }
 
   const { supabase, response } = updateSupabaseSession(request);
+  if (!supabase) {
+    return response;
+  }
   const {
     data: { user }
   } = await supabase.auth.getUser();

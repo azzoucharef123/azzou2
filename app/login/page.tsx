@@ -5,6 +5,7 @@ import { loginAction } from "@/app/actions/auth";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { getSafeRedirectTarget, getSession } from "@/lib/auth";
+import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -40,6 +41,19 @@ export default async function LoginPage({
             Authenticate with your Supabase-backed account to open author, reviewer, and editorial workflows.
           </p>
         </div>
+        {!env.hasSupabaseAuth ? (
+          <div className="rounded-[1.4rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-200">
+            Supabase Auth is not configured for this deployment. Set real values for
+            {" "}
+            <span className="font-semibold">NEXT_PUBLIC_SUPABASE_URL</span>
+            {" "}
+            and
+            {" "}
+            <span className="font-semibold">NEXT_PUBLIC_SUPABASE_ANON_KEY</span>
+            {" "}
+            in your hosting provider, then redeploy.
+          </div>
+        ) : null}
         {notice ? (
           <div className="rounded-[1.4rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
             {notice}

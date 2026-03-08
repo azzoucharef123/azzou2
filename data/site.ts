@@ -1,11 +1,13 @@
 import { LinkItem } from "@/types/content";
+import { env } from "@/lib/env";
 
 export const siteConfig = {
   name: "Physics & Chemistry Under the Microscope",
   shortName: "P&C Microscope",
   description:
     "A premium editorial science magazine exploring physics, chemistry, research culture, and the ideas shaping modern laboratories.",
-  url: "https://physics-chemistry-under-the-microscope.vercel.app",
+  // Used for canonical metadata and share URLs. Falls back to localhost if misconfigured.
+  url: env.SITE_URL,
   tagline: "Where rigorous science meets elegant editorial storytelling.",
   mission:
     "We translate complex physical and chemical research into deeply readable journalism without sacrificing precision, nuance, or intellectual ambition.",

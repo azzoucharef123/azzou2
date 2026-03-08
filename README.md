@@ -83,10 +83,10 @@ Required:
 - `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
 
 Optional:
 
+- `SUPABASE_SERVICE_ROLE_KEY` (required only for Supabase Admin operations such as seed-user creation or future role management)
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
 - `DEV_ENABLE_PLATFORM_IMPERSONATION`
@@ -212,7 +212,7 @@ Railway deployment steps:
 2. Create a new Railway project and connect the GitHub repository.
 3. Add the required environment variables from `.env.example`.
 4. Ensure `DATABASE_URL` uses your production Postgres runtime connection and `DIRECT_URL` uses the direct migration connection.
-5. Deploy the service. Railway will build with `npm run build`, run `npm run db:migrate:deploy`, and start the app with `npm run start`.
+5. Deploy the service. Railway will build with `npm run build`, run `node scripts/railway-predeploy.mjs` (which executes `prisma migrate deploy` only when DB env vars are real), and start the app with `npm run start`.
 
 Manual actions you still need:
 

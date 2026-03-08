@@ -5,7 +5,7 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "preDeployCommand": "npm run db:migrate:deploy",
+    "preDeployCommand": "node scripts/railway-predeploy.mjs",
     "startCommand": "npm run start",
     "healthcheckPath": "/api/healthz",
     "healthcheckTimeout": 120,

@@ -5,6 +5,7 @@ import { signupAction } from "@/app/actions/auth";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { getSafeRedirectTarget, getSession } from "@/lib/auth";
+import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Sign Up",
@@ -40,6 +41,19 @@ export default async function SignupPage({
             Registration creates a real authentication record and bootstraps the linked publishing profile for author access.
           </p>
         </div>
+        {!env.hasSupabaseAuth ? (
+          <div className="rounded-[1.4rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-200">
+            Supabase Auth is not configured for this deployment. Set real values for
+            {" "}
+            <span className="font-semibold">NEXT_PUBLIC_SUPABASE_URL</span>
+            {" "}
+            and
+            {" "}
+            <span className="font-semibold">NEXT_PUBLIC_SUPABASE_ANON_KEY</span>
+            {" "}
+            in your hosting provider, then redeploy.
+          </div>
+        ) : null}
         {error ? (
           <div className="rounded-[1.4rem] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-200">
             {error}

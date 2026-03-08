@@ -1,14 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { getSupabaseConfig } from "@/lib/supabase/config";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getSupabaseConfigOptional } from "@/lib/supabase/config";
 
-export function updateSupabaseSession(request: NextRequest) {
+export function updateSupabaseSession(
+  request: NextRequest
+): {
+  supabase: SupabaseClient | null;
+  response: NextResponse;
+} {
   const response = NextResponse.next({
     request
   });
-  const { url, anonKey } = getSupabaseConfig();
+  const config = getSupabaseConfigOptional();
 
-  const supabase = createServerClient(url, anonKey, {
+  if (!config) {
+    return { supabase: null, response };
+  }
+
+  const supabase = createServerClient(config.url, config.anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

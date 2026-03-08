@@ -11,6 +11,34 @@ const sampleUsers = [
   { email: "admin@microscope-magazine.com", password: "Admin123!", fullName: "Adrian Nash", role: UserRole.admin }
 ];
 
+function looksLikePlaceholder(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return true;
+
+  if (normalized.includes("example.com") || normalized.includes("example.org") || normalized.includes("example.net")) {
+    return true;
+  }
+
+  return [
+    "changeme",
+    "change-me",
+    "replace-me",
+    "replace_this",
+    "replace-this",
+    "your-",
+    "your_",
+    "todo",
+    "tbd",
+    "placeholder",
+    "<password>",
+    "<your",
+    "${",
+    "xxx",
+    "xxxx",
+    "000000"
+  ].some((token) => normalized.includes(token));
+}
+
 function toInitials(name: string) {
   return name
     .split(" ")
@@ -25,6 +53,10 @@ async function createSupabaseSeedUsers() {
   const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceRole) {
+    return new Map<string, string>();
+  }
+
+  if (looksLikePlaceholder(url) || looksLikePlaceholder(serviceRole)) {
     return new Map<string, string>();
   }
 
