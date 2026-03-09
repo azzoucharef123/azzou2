@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { apiError, apiSuccess } from "@/lib/api";
 import { requireAuthenticatedSession } from "@/lib/auth";
-import { recordChiefEditorDecision } from "@/lib/services/article-service";
-import { chiefEditorDecisionSchema } from "@/lib/validators/article";
+import { changeArticleStatus } from "@/lib/services/article-service";
+import { changeArticleStatusSchema } from "@/lib/validators/article";
 
 export async function POST(
   request: NextRequest,
@@ -11,10 +11,10 @@ export async function POST(
   try {
     const session = await requireAuthenticatedSession();
     const { articleId } = await params;
-    const payload = chiefEditorDecisionSchema.parse(await request.json());
-    const decision = await recordChiefEditorDecision(session, articleId, payload);
+    const payload = changeArticleStatusSchema.parse(await request.json());
+    const article = await changeArticleStatus(session, articleId, payload);
 
-    return apiSuccess(decision);
+    return apiSuccess(article);
   } catch (error) {
     return apiError(error);
   }

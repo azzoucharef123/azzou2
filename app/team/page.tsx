@@ -7,7 +7,7 @@ import { getTeamMembers } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Editorial Team",
-  description: "Meet the editorial leadership, managing editors, scientific reviewers, and contributors behind the magazine."
+  description: "Meet the editors and contributors behind the magazine."
 };
 
 export default function TeamPage() {
@@ -25,7 +25,7 @@ export default function TeamPage() {
         <SectionHeading
           description="The magazine combines editorial craft with scientific review so that style, credibility, and explanatory clarity reinforce each other."
           eyebrow="Editorial Team"
-          title="Editors, reviewers, and contributors shaping the publication."
+          title="Editors and contributors shaping the publication."
         />
       </Reveal>
       <div className="mt-12 space-y-12">

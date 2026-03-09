@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "Premium editorial email preview templates for issue launches, author communication, and subscriber touchpoints."
 };
 
-const allowedRoles: PlatformRole[] = ["productionEditor", "managingEditor", "chiefEditor"];
+const allowedRoles: PlatformRole[] = ["editor"];
 
 export default async function PlatformEmailPreviewsPage() {
   const session = await getSession();
@@ -25,11 +25,11 @@ export default async function PlatformEmailPreviewsPage() {
 
   if (!allowedRoles.includes(session.activeRole)) {
     return (
-      <PlatformAccessState
-        allowedRoles={[...allowedRoles]}
-        description="Email preview templates are handled by production and senior editorial teams coordinating launches, revision requests, and subscriber communications."
-        title="Email proofs require a production or senior editorial role."
-      />
+        <PlatformAccessState
+          allowedRoles={[...allowedRoles]}
+          description="Email preview templates are handled by editors coordinating launches, revision requests, and subscriber communications."
+          title="Email proofs require an editor account."
+        />
     );
   }
 

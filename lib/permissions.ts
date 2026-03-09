@@ -7,7 +7,7 @@ export function hasRole(session: AuthSession, allowedRoles: AuthSession["primary
 }
 
 export function hasCapability(session: AuthSession, capability: EditorCapability) {
-  return session.capabilities.includes(capability) || session.primaryRole === "admin";
+  return session.capabilities.includes(capability);
 }
 
 export function requireRole(session: AuthSession, allowedRoles: AuthSession["primaryRole"][]) {
@@ -23,7 +23,7 @@ export function requireCapability(session: AuthSession, capability: EditorCapabi
 }
 
 export function requireOwnership(session: AuthSession, ownerProfileId: string) {
-  if (session.profile.id !== ownerProfileId && session.primaryRole !== "admin") {
+  if (session.profile.id !== ownerProfileId && session.primaryRole !== "editor") {
     throw new AuthorizationError();
   }
 }

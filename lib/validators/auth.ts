@@ -17,5 +17,5 @@ export const signupSchema = z.object({
 
 export const bootstrapProfileSchema = z.object({
   fullName: z.string().min(2).max(120).optional(),
-  role: z.enum(["author", "reviewer", "editor", "chief_editor", "admin"]).default("author")
+  role: z.enum(["author", "editor"]).default("author")
 });

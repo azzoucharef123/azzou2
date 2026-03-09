@@ -1,27 +1,22 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import { getReviewTemplates, getWorkflowItems } from "@/lib/platform";
+import { formatEditorDashboardStatus } from "@/lib/platform-status";
+import { getPlatformDashboardData } from "@/lib/services/dashboard-service";
 import { PlatformRole } from "@/types/platform";
 import { FilterChipBar } from "@/components/platform/filter-chip-bar";
 import { PlatformAccessState } from "@/components/platform/platform-access-state";
-import { ReviewScoreCard } from "@/components/platform/review-score-card";
 import { StatusBadge } from "@/components/platform/status-badge";
 import { TableCard } from "@/components/platform/table-card";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 
-const ReviewFormDemo = dynamic(() => import("@/components/platform/review-form-demo").then((mod) => mod.ReviewFormDemo), {
-  loading: () => <div className="platform-panel rounded-[2rem] p-6 sm:p-7"><div className="h-72 rounded-[1.4rem] bg-white/45 dark:bg-slate-950/35" /></div>
-});
-
 export const metadata: Metadata = {
-  title: "Review Forms",
-  description: "Structured scientific review interfaces for manuscripts moving through editorial evaluation."
+  title: "Submission Board",
+  description: "Editor workspace for triaging pending and in-progress submissions."
 };
 
-const allowedRoles: PlatformRole[] = ["reviewer", "managingEditor", "chiefEditor"];
+const allowedRoles: PlatformRole[] = ["editor"];
 
 export default async function PlatformReviewsPage() {
   const session = await getSession();
@@ -32,61 +27,85 @@ export default async function PlatformReviewsPage() {
 
   if (!allowedRoles.includes(session.activeRole)) {
     return (
-      <PlatformAccessState
-        allowedRoles={[...allowedRoles]}
-        description="The review desk is reserved for reviewers and senior editors who need scoring forms, confidential notes, and recommendation tracking."
-        title="Review forms are not available from the current desk."
-      />
+        <PlatformAccessState
+          allowedRoles={[...allowedRoles]}
+          description="The submission board is reserved for editors handling article triage, status updates, and editorial oversight."
+          title="Submission management is not available from the current desk."
+        />
     );
   }
 
-  const templates = getReviewTemplates();
-  const items = getWorkflowItems();
+  const dashboard = await getPlatformDashboardData(session);
+  const items = dashboard.workflows;
+  const pending = items.filter((item) => item.dashboardStatus === "pending_submissions");
+  const reviewing = items.filter((item) => item.dashboardStatus === "under_review");
 
   return (
     <div className="space-y-6">
       <Reveal>
         <SectionHeading
-          description="Evaluate manuscripts with calibrated scoring, concise methodological notes, and editorial-ready recommendations."
-          eyebrow="Review Forms"
-          title="Scientific review surfaces built for clarity and proportion."
+          description="Use this board to triage new submissions, track active editorial review, and open article detail pages for direct status management."
+          eyebrow="Submission Board"
+          title="A clear editorial lane for pending and active manuscripts."
         />
       </Reveal>
       <Reveal delay={0.04}>
         <FilterChipBar
           items={[
-            { label: "Assigned", meta: `${items.length}` },
-            { label: "Minor revision", meta: "Current", active: true },
-            { label: "Confidential", meta: "Protected" }
+            { label: "Pending", meta: `${pending.length}`, active: true },
+            { label: "Under review", meta: `${reviewing.length}` },
+            { label: "All submissions", meta: `${items.length}` }
           ]}
         />
       </Reveal>
-      <div className="grid gap-6 xl:grid-cols-2">
-        {templates.map((template, index) => (
-          <Reveal delay={index * 0.05} key={template.id}>
-            <ReviewScoreCard template={template} />
-          </Reveal>
-        ))}
-      </div>
       <div className="grid gap-6 2xl:grid-cols-[1.05fr_0.95fr]">
         <Reveal>
-          <ReviewFormDemo />
+          <TableCard
+            description="New or unresolved articles waiting for an editor decision or next action."
+            title="Pending submissions"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th>Article</th>
+                  <th>Author</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending.map((item) => (
+                  <tr key={item.slug}>
+                    <td>
+                      <Link className="focus-ring block font-semibold text-foreground hover:text-blue-700 dark:hover:text-sky-300" href={`/platform/workflows/${item.slug}`}>
+                        {item.title}
+                      </Link>
+                      <p className="mt-1 text-sm text-muted">{item.summary}</p>
+                    </td>
+                    <td>
+                      <p>{item.author}</p>
+                      <p className="text-sm text-muted">{item.category}</p>
+                    </td>
+                    <td>
+                      <StatusBadge label={item.dashboardStatusLabel ?? formatEditorDashboardStatus(item.dashboardStatus)} tone={item.tone} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableCard>
         </Reveal>
         <Reveal delay={0.08}>
-          <TableCard
-            description="Assigned manuscripts that still need reviewer scoring or editorial synthesis."
-            title="Assigned manuscripts"
-          >
+          <TableCard description="Articles currently in the editor-managed assessment lane." title="Under review">
             <table>
               <thead>
                 <tr>
                   <th>Manuscript</th>
                   <th>Current stage</th>
-                  <th>Reviewers</th>
+                  <th>Lead editor</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
+                {reviewing.map((item) => (
                   <tr key={item.slug}>
                     <td>
                       <Link className="focus-ring block font-semibold text-foreground hover:text-blue-700 dark:hover:text-sky-300" href={`/platform/workflows/${item.slug}`}>
@@ -97,17 +116,11 @@ export default async function PlatformReviewsPage() {
                     <td>
                       <StatusBadge
                         label={item.currentStep}
-                        tone={item.status === "accepted" || item.status === "published" ? "emerald" : item.status === "under_review" ? "blue" : "amber"}
+                        tone={item.tone}
                       />
                     </td>
                     <td>
-                      <div className="flex flex-wrap gap-2">
-                        {item.reviewers.map((reviewer) => (
-                          <span className="rounded-full border border-border bg-white/70 px-3 py-1 text-xs font-medium text-muted dark:bg-slate-950/40" key={reviewer}>
-                            {reviewer}
-                          </span>
-                        ))}
-                      </div>
+                      <p>{item.assignedTo}</p>
                     </td>
                   </tr>
                 ))}

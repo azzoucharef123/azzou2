@@ -9,8 +9,8 @@ export function HomeContributionActions() {
   const chips = session
     ? session.activeRole === "author"
       ? ["Commissioned features", "Research summaries", "Interviews & essays"]
-      : ["Role-based dashboards", "Editorial approvals", "Production operations"]
-    : ["Author registration", "Protected submissions", "Editorial review"];
+      : ["Editor dashboard", "Submission management", "Publication operations"]
+    : ["Author registration", "Protected submissions", "Editorial workflow"];
 
   return (
     <>

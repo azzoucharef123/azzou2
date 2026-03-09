@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ensureProfileForSupabaseUser } from "@/lib/services/auth-service";
-import { getSafeRedirectTarget, requireSupabaseAuthConfigured } from "@/lib/auth";
+import { getSafeRedirectTarget, requireSupabaseAuthConfigured, resolveCanonicalRole } from "@/lib/auth";
 import { loginSchema, signupSchema } from "@/lib/validators/auth";
 
 function getField(formData: FormData, key: string) {
@@ -35,7 +35,7 @@ export async function loginAction(formData: FormData) {
       redirect(`/login?error=${encodeURIComponent(error?.message ?? "Unable to login.")}&redirectTo=${encodeURIComponent(redirectTo)}`);
     }
 
-    await ensureProfileForSupabaseUser(data.user, "author");
+    await ensureProfileForSupabaseUser(data.user);
     redirect(redirectTo);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to login.";
@@ -58,6 +58,7 @@ export async function signupAction(formData: FormData) {
   }
 
   const redirectTo = getSafeRedirectTarget(payload.data.redirectTo);
+  const assignedRole = resolveCanonicalRole(payload.data.email, "author");
 
   try {
     requireSupabaseAuthConfigured();
@@ -68,7 +69,7 @@ export async function signupAction(formData: FormData) {
       options: {
         data: {
           full_name: payload.data.fullName,
-          role: "author",
+          role: assignedRole,
           affiliation: payload.data.affiliation,
           headline: payload.data.headline
         }
@@ -79,7 +80,7 @@ export async function signupAction(formData: FormData) {
       redirect(`/signup?error=${encodeURIComponent(error?.message ?? "Unable to create your account.")}&redirectTo=${encodeURIComponent(redirectTo)}`);
     }
 
-    await ensureProfileForSupabaseUser(data.user, "author");
+    await ensureProfileForSupabaseUser(data.user, assignedRole);
 
     if (!data.session) {
       redirect(`/login?notice=${encodeURIComponent("Account created. Check your email to confirm your address, then sign in.")}&redirectTo=${encodeURIComponent(redirectTo)}`);

@@ -114,7 +114,7 @@ export async function getArticleDetail(slug: string) {
 
 export async function createArticleDraft(session: AuthSession, payload: ArticleCreatePayload) {
   ensureDatabaseWritable();
-  requireRole(session, ["author", "admin"]);
+  requireRole(session, ["author", "editor"]);
 
   return withDbTransaction(async (db) => {
     const category = payload.categorySlug ? await findCategoryBySlug(payload.categorySlug, db) : null;
@@ -255,17 +255,18 @@ export async function assignArticleReviewer(
   payload: { reviewerProfileId: string; dueAt?: string }
 ) {
   ensureDatabaseWritable();
-  requireCapability(session, "ASSIGN_REVIEWERS");
+  requireRole(session, ["editor"]);
+  requireCapability(session, "MANAGE_WORKFLOWS");
   const article = await loadArticleOrThrow(articleId);
 
   if (article.authorId === payload.reviewerProfileId) {
     throw new ConflictError("Authors cannot review their own articles.");
   }
 
-  const reviewer = (await listProfilesByRole("reviewer")).find((profile) => profile.id === payload.reviewerProfileId);
+  const reviewer = (await listProfilesByRole("editor")).find((profile) => profile.id === payload.reviewerProfileId);
 
   if (!reviewer) {
-    throw new NotFoundError("Reviewer not found.");
+    throw new NotFoundError("Editor reviewer not found.");
   }
 
   if (article.status === "submitted") {
@@ -313,22 +314,22 @@ export async function assignArticleReviewer(
 
     await updateArticleStatus(articleId, "under_review", db);
     await addStatusHistory(
-      {
-        articleId,
-        actorId: session.profile.id,
-        fromStatus: "awaiting_reviewer_assignment",
-        toStatus: "under_review",
-        note: `Reviewer assigned: ${assignment.reviewer.fullName}.`
-      },
-      db
-    );
+        {
+          articleId,
+          actorId: session.profile.id,
+          fromStatus: "awaiting_reviewer_assignment",
+          toStatus: "under_review",
+          note: `Reviewing editor assigned: ${assignment.reviewer.fullName}.`
+        },
+        db
+      );
     await createNotifications(
       [
         {
           recipientId: assignment.reviewerId,
           type: "review",
-          title: "Review assignment received",
-          body: `${article.title} has been assigned to you for review.`
+          title: "Editorial review assignment received",
+          body: `${article.title} has been assigned to you for internal editorial review.`
         }
       ],
       db
@@ -344,7 +345,7 @@ export async function submitAssignedReview(
   payload: { recommendation: ReviewRecommendation; summary: string; confidentialNote?: string }
 ) {
   ensureDatabaseWritable();
-  requireRole(session, ["reviewer", "admin"]);
+  requireRole(session, ["editor"]);
   const prisma = getPrisma();
   const assignment = await prisma.reviewerAssignment.findUnique({
     where: {
@@ -359,7 +360,7 @@ export async function submitAssignedReview(
     throw new NotFoundError("Reviewer assignment not found.");
   }
 
-  if (assignment.reviewerId !== session.profile.id && session.primaryRole !== "admin") {
+  if (assignment.reviewerId !== session.profile.id) {
     throw new AuthorizationError();
   }
 
@@ -431,6 +432,72 @@ export async function requestArticleRevision(
   });
 }
 
+export async function changeArticleStatus(
+  session: AuthSession,
+  articleId: string,
+  payload: { status: "pending_editorial_check" | "under_review" | "accepted" | "rejected" | "published"; note?: string }
+) {
+  ensureDatabaseWritable();
+  requireRole(session, ["editor"]);
+  requireCapability(session, "MANAGE_WORKFLOWS");
+  const article = await loadArticleOrThrow(articleId);
+  assertTransitionAllowed(article.status, payload.status);
+
+  return withDbTransaction(async (db) => {
+    if (payload.note) {
+      await createEditorialNote(
+        {
+          articleId,
+          authorId: session.profile.id,
+          title: "Status update",
+          body: payload.note,
+          isInternal: false
+        },
+        db
+      );
+    }
+
+    if (payload.status === "published") {
+      await db.article.update({
+        where: {
+          id: articleId
+        },
+        data: {
+          status: "published",
+          publishedAt: new Date()
+        }
+      });
+    } else {
+      await updateArticleStatus(articleId, payload.status, db);
+    }
+
+    await addStatusHistory(
+      {
+        articleId,
+        actorId: session.profile.id,
+        fromStatus: article.status,
+        toStatus: payload.status,
+        note: payload.note ?? `Status updated to ${payload.status.replaceAll("_", " ")}.`
+      },
+      db
+    );
+
+    await createNotifications(
+      [
+        {
+          recipientId: article.authorId,
+          type: "workflow",
+          title: "Submission status updated",
+          body: `${article.title} is now marked as ${payload.status.replaceAll("_", " ")}.`
+        }
+      ],
+      db
+    );
+
+    return getArticleById(articleId, db);
+  });
+}
+
 export async function recordEditorRecommendation(
   session: AuthSession,
   articleId: string,
@@ -469,7 +536,7 @@ export async function recordEditorRecommendation(
         actorId: session.profile.id,
         fromStatus: payload.recommendation,
         toStatus: "awaiting_chief_editor_decision",
-        note: "Awaiting chief editor decision."
+        note: "Awaiting final editorial decision."
       },
       db
     );
@@ -482,7 +549,7 @@ export async function recordChiefEditorDecision(
   payload: { decision: "accept" | "reject" | "hold"; rationale?: string }
 ) {
   ensureDatabaseWritable();
-  requireRole(session, ["chief_editor", "admin"]);
+  requireRole(session, ["editor"]);
   const article = await loadArticleOrThrow(articleId);
 
   if (payload.decision === "hold") {
@@ -586,8 +653,24 @@ export async function getWorkflowDetail(slug: string) {
       slug: fallback.slug,
       title: fallback.title,
       summary: fallback.excerpt,
+      category: fallback.categorySlug,
+      author: fallback.authorSlug,
       status: "published" as const,
-      currentStep: getWorkflowStepLabel("published")
+      currentStep: getWorkflowStepLabel("published"),
+      authorId: fallback.authorSlug,
+      assignedTo: "Editorial desk",
+      assignedEditors: ["Editorial desk"],
+      tags: fallback.tags,
+      submittedAt: fallback.publishedAt,
+      updatedAt: fallback.publishedAt,
+      timeline: [
+        {
+          label: "Published",
+          detail: "This fallback article is already live in the public magazine archive.",
+          date: fallback.publishedAt,
+          complete: true
+        }
+      ]
     };
   }
 
@@ -597,5 +680,26 @@ export async function getWorkflowDetail(slug: string) {
     throw new NotFoundError("Workflow not found.");
   }
 
-  return article;
+  return {
+    id: article.id,
+    slug: article.slug,
+    title: article.title,
+    summary: article.excerpt ?? "Editorial summary pending.",
+    category: article.category?.name ?? "Uncategorised",
+    author: article.author.fullName,
+    authorId: article.author.id,
+    status: article.status,
+    currentStep: getWorkflowStepLabel(article.status),
+    assignedTo: article.reviewerAssignments[0]?.reviewer.fullName ?? "Editorial desk",
+    assignedEditors: article.reviewerAssignments.map((assignment) => assignment.reviewer.fullName),
+    tags: article.tags.map((item) => item.tag.name),
+    submittedAt: article.createdAt.toISOString(),
+    updatedAt: article.updatedAt.toISOString(),
+    timeline: article.statusHistory.map((entry) => ({
+      label: getWorkflowStepLabel(entry.toStatus),
+      detail: entry.note ?? (entry.actor?.fullName ? `Updated by ${entry.actor.fullName}.` : "Editorial status updated."),
+      date: entry.createdAt.toISOString(),
+      complete: true
+    }))
+  };
 }

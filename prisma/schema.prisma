@@ -10,10 +10,7 @@ datasource db {
 
 enum UserRole {
   author
-  reviewer
   editor
-  chief_editor
-  admin
 }
 
 enum EditorCapability {

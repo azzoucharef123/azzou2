@@ -51,7 +51,7 @@ export function ProfileMenu({
         <div className="rounded-[1.5rem] border border-border bg-white/70 p-4 dark:bg-slate-950/40">
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted">Platform access</p>
           <p className="mt-3 text-sm leading-6 text-muted">
-            Access is now driven by Supabase-authenticated roles and editorial capabilities. Seeded accounts provide author, reviewer, editor, and chief editor desk coverage.
+            Access is now driven by Supabase-authenticated roles and editorial capabilities. The platform supports only author and editor access paths.
           </p>
         </div>
         <Link

@@ -1,6 +1,6 @@
 import "server-only";
 import type { User } from "@supabase/supabase-js";
-import { getInitials, getDefaultCapabilities, mapUserToSession } from "@/lib/auth";
+import { getInitials, getDefaultCapabilities, mapUserToSession, resolveCanonicalRole } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { ConfigurationError } from "@/lib/errors";
 import { upsertProfile } from "@/lib/repositories/profile-repository";
@@ -19,14 +19,15 @@ export async function ensureProfileForSupabaseUser(user: User, role: UserRole = 
     "Science Contributor";
   const affiliation = (user.user_metadata?.affiliation as string | undefined) ?? undefined;
   const headline = (user.user_metadata?.headline as string | undefined) ?? undefined;
+  const canonicalRole = resolveCanonicalRole(user.email, role);
 
   const profile = await upsertProfile({
     authUserId: user.id,
     email: user.email ?? "",
     fullName,
     initials: getInitials(fullName),
-    primaryRole: role,
-    capabilities: getDefaultCapabilities(role),
+    primaryRole: canonicalRole,
+    capabilities: getDefaultCapabilities(canonicalRole),
     affiliation,
     headline
   });
@@ -44,13 +45,15 @@ export async function bootstrapProfileForAuthUser(input: {
     throw new ConfigurationError("DATABASE_URL is required to bootstrap profiles.");
   }
 
+  const canonicalRole = resolveCanonicalRole(input.email, input.role);
+
   return upsertProfile({
     authUserId: input.authUserId,
     email: input.email,
     fullName: input.fullName,
     initials: getInitials(input.fullName),
-    primaryRole: input.role ?? "author",
-    capabilities: getDefaultCapabilities(input.role ?? "author")
+    primaryRole: canonicalRole,
+    capabilities: getDefaultCapabilities(canonicalRole)
   });
 }
 

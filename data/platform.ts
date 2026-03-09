@@ -12,76 +12,62 @@ import {
 
 export const platformRoles: { id: PlatformRole; label: string; summary: string }[] = [
   { id: "author", label: "Author", summary: "Submission progress, revision requests, and active article packets." },
-  { id: "reviewer", label: "Reviewer", summary: "Assigned manuscripts, scoring forms, and confidential recommendation notes." },
-  { id: "managingEditor", label: "Managing Editor", summary: "Workflow orchestration, routing, scheduling, and issue readiness." },
-  { id: "chiefEditor", label: "Chief Editor", summary: "Final approvals, high-risk editorial review, and publication sign-off." },
-  { id: "productionEditor", label: "Production Editor", summary: "Publication queue, outbound notifications, and delivery quality control." }
+  { id: "editor", label: "Editor", summary: "Workflow orchestration, article management, publication scheduling, and editorial decision-making." }
 ];
 
 export const platformNavigation: PlatformNavItem[] = [
-  { label: "Dashboard", href: "/platform", roles: ["author", "reviewer", "managingEditor", "chiefEditor", "productionEditor"] },
-  { label: "Workflow Detail", href: "/platform/workflows/quantum-sensors-in-noisy-labs", roles: ["author", "reviewer", "managingEditor", "chiefEditor"] },
-  { label: "Review Forms", href: "/platform/reviews", roles: ["reviewer", "managingEditor", "chiefEditor"] },
-  { label: "Chief Editor", href: "/platform/approvals", roles: ["chiefEditor", "managingEditor"] },
-  { label: "Publication Queue", href: "/platform/queue", roles: ["productionEditor", "managingEditor", "chiefEditor"] },
-  { label: "Notifications", href: "/platform/notifications", roles: ["author", "reviewer", "managingEditor", "chiefEditor", "productionEditor"] },
-  { label: "Email Previews", href: "/platform/email-previews", roles: ["productionEditor", "managingEditor", "chiefEditor"] }
+  { label: "Dashboard", href: "/platform", roles: ["author", "editor"] },
+  { label: "Submission Board", href: "/platform/reviews", roles: ["editor"] },
+  { label: "Editorial Decisions", href: "/platform/approvals", roles: ["editor"] },
+  { label: "Publication Queue", href: "/platform/queue", roles: ["editor"] },
+  { label: "Notifications", href: "/platform/notifications", roles: ["author", "editor"] },
+  { label: "Email Briefs", href: "/platform/email-previews", roles: ["editor"] }
 ];
 
 export const roleMetrics: Record<PlatformRole, PlatformMetric[]> = {
   author: [
-    { label: "Active submissions", value: "04", delta: "+1 this week", tone: "blue" },
-    { label: "Awaiting revisions", value: "02", delta: "1 high-priority", tone: "amber" },
-    { label: "Accepted pieces", value: "11", delta: "92% completion", tone: "emerald" }
+    { label: "My submissions", value: "04", delta: "1 updated this week", tone: "blue" },
+    { label: "Pending decisions", value: "02", delta: "Editorial review in progress", tone: "amber" },
+    { label: "Accepted articles", value: "02", delta: "Ready for publication", tone: "emerald" }
   ],
-  reviewer: [
-    { label: "Assigned manuscripts", value: "06", delta: "3 due in 48 hours", tone: "cyan" },
-    { label: "Completed reviews", value: "28", delta: "Median turnaround 3.2 days", tone: "emerald" },
-    { label: "Conflict checks", value: "01", delta: "Awaiting declaration", tone: "amber" }
-  ],
-  managingEditor: [
-    { label: "Live workflows", value: "19", delta: "7 across physics desk", tone: "blue" },
-    { label: "Issue-ready articles", value: "08", delta: "2 moved to queue", tone: "emerald" },
-    { label: "Delayed tasks", value: "03", delta: "One escalation required", tone: "amber" }
-  ],
-  chiefEditor: [
-    { label: "Pending approvals", value: "05", delta: "2 elevated-risk features", tone: "violet" },
-    { label: "Approved today", value: "03", delta: "Queue fully supplied", tone: "emerald" },
-    { label: "Editorial holds", value: "01", delta: "Methodology clarification", tone: "amber" }
-  ],
-  productionEditor: [
-    { label: "Scheduled releases", value: "14", delta: "Next issue package in 3 days", tone: "blue" },
-    { label: "Ready assets", value: "09", delta: "All covers QC passed", tone: "emerald" },
-    { label: "Blocked deliveries", value: "02", delta: "Email proofing required", tone: "amber" }
+  editor: [
+    { label: "Pending submissions", value: "09", delta: "Needs editorial triage", tone: "amber" },
+    { label: "Under review", value: "05", delta: "Active assessment", tone: "blue" },
+    { label: "Published this cycle", value: "06", delta: "Across current issue lanes", tone: "emerald" }
   ]
 };
 
 export const workflowItems: WorkflowItem[] = [
   {
+    id: "wf-qsnl",
     slug: "quantum-sensors-in-noisy-labs",
     title: "Quantum Sensors in Noisy Laboratories",
     category: "Physics",
+    categorySlug: "physics",
     author: "Dr Evelyn Hart",
+    authorId: "author-fallback",
     status: "under_review",
     priority: "High",
     submittedAt: "2026-03-01",
     updatedAt: "2026-03-06",
     assignedTo: "Noor Ellison",
     summary: "Long-form feature on why practical laboratory conditions are becoming the real bottleneck in quantum sensing.",
-    currentStep: "Peer review round two",
-    reviewers: ["Prof Elias Mercer", "Dr Hana Vesik"],
+    currentStep: "Editorial assessment underway",
+    assignedEditors: ["Noor Ellison"],
     tags: ["Quantum sensing", "Instrumentation", "Cover candidate"],
     timeline: [
       { label: "Submission received", detail: "Author packet validated with references and figure permissions.", date: "1 March 2026", complete: true },
-      { label: "Managing editor triage", detail: "Commissioning note approved for review assignment.", date: "2 March 2026", complete: true },
-      { label: "Reviewer response", detail: "One reviewer requested clarification on noise characterization claims.", date: "5 March 2026", complete: true },
+      { label: "Editorial triage", detail: "Commissioning note approved for internal review assignment.", date: "2 March 2026", complete: true },
+      { label: "Editorial assessment", detail: "Lead editor requested clarification on noise characterization claims.", date: "5 March 2026", complete: true },
       { label: "Revision window", detail: "Awaiting updated methods paragraph and figure caption language.", date: "8 March 2026", complete: false }
     ]
   },
   {
+    id: "wf-mar",
     slug: "microscopy-and-the-politics-of-resolution",
     title: "Microscopy and the Politics of Resolution",
     category: "Technology & Innovation",
+    categorySlug: "technology-innovation",
     author: "Dr Marcus Lee",
     status: "accepted",
     priority: "Standard",
@@ -89,14 +75,83 @@ export const workflowItems: WorkflowItem[] = [
     updatedAt: "2026-01-18",
     assignedTo: "Helen Ivey",
     summary: "A feature package about image authority, sample preparation, and interpretive risk in advanced microscopy.",
-    currentStep: "Approved for production",
-    reviewers: ["Dr Marta Volkov"],
+    currentStep: "Accepted and queued for issue packaging",
+    assignedEditors: ["Helen Ivey"],
     tags: ["Microscopy", "Visual analysis", "Issue 12"],
     timeline: [
       { label: "Submission received", detail: "Feature brief entered the production system.", date: "10 January 2026", complete: true },
-      { label: "Review complete", detail: "Scientific reviewer accepted methodological framing.", date: "14 January 2026", complete: true },
+      { label: "Editorial review complete", detail: "Internal editorial review accepted the methodological framing.", date: "14 January 2026", complete: true },
       { label: "Editorial polish", detail: "Display deck and image callouts approved.", date: "17 January 2026", complete: true },
       { label: "Queue handoff", detail: "Ready for issue packaging and newsletter promotion.", date: "18 January 2026", complete: true }
+    ]
+  },
+  {
+    id: "wf-bi",
+    slug: "battery-interfaces-under-stress",
+    title: "Battery Interfaces Under Stress",
+    category: "Chemistry",
+    categorySlug: "chemistry",
+    author: "Dr Evelyn Hart",
+    authorId: "author-fallback",
+    status: "submitted",
+    priority: "Standard",
+    submittedAt: "2026-03-04",
+    updatedAt: "2026-03-07",
+    assignedTo: "Editorial desk",
+    summary: "Analysis of degradation pathways at battery interfaces and how lab evidence translates into industrial claims.",
+    currentStep: "Awaiting editorial triage",
+    assignedEditors: ["Noor Ellison"],
+    tags: ["Electrochemistry", "Batteries", "Materials"],
+    timeline: [
+      { label: "Draft finalised", detail: "The author completed the submission packet with references and figures.", date: "4 March 2026", complete: true },
+      { label: "Submission received", detail: "The manuscript entered the editorial pipeline for first-pass review.", date: "5 March 2026", complete: true },
+      { label: "Initial editorial triage", detail: "Awaiting assignment to the chemistry desk editor.", date: "7 March 2026", complete: false }
+    ]
+  },
+  {
+    id: "wf-sah",
+    slug: "spectroscopy-after-the-hype",
+    title: "Spectroscopy After the Hype",
+    category: "Research Summaries",
+    categorySlug: "research-summaries",
+    author: "Dr Evelyn Hart",
+    authorId: "author-fallback",
+    status: "rejected",
+    priority: "Low",
+    submittedAt: "2026-02-11",
+    updatedAt: "2026-02-15",
+    assignedTo: "Noor Ellison",
+    summary: "A concise feature examining which spectroscopy claims survive contact with production environments.",
+    currentStep: "Rejected after editorial review",
+    assignedEditors: ["Noor Ellison"],
+    tags: ["Spectroscopy", "Instrumentation"],
+    timeline: [
+      { label: "Submission received", detail: "Article packet entered the editorial queue.", date: "11 February 2026", complete: true },
+      { label: "Editorial assessment", detail: "The desk requested a narrower angle and stronger source support.", date: "13 February 2026", complete: true },
+      { label: "Decision issued", detail: "The feature was declined for publication in its current form.", date: "15 February 2026", complete: true }
+    ]
+  },
+  {
+    id: "wf-ppl",
+    slug: "particle-probes-in-liquid-media",
+    title: "Particle Probes in Liquid Media",
+    category: "Physics",
+    categorySlug: "physics",
+    author: "Dr Marcus Lee",
+    status: "published",
+    priority: "Standard",
+    submittedAt: "2026-01-02",
+    updatedAt: "2026-01-29",
+    assignedTo: "Helen Ivey",
+    summary: "Feature coverage on liquid-phase measurement constraints and why instrumentation claims need tighter reporting language.",
+    currentStep: "Published",
+    assignedEditors: ["Helen Ivey"],
+    tags: ["Measurement", "Instrumentation", "Issue 11"],
+    timeline: [
+      { label: "Submission received", detail: "The article entered the January issue pipeline.", date: "2 January 2026", complete: true },
+      { label: "Editorial development", detail: "The methods section and framing were refined for clarity.", date: "9 January 2026", complete: true },
+      { label: "Accepted", detail: "The final package was approved for publication.", date: "18 January 2026", complete: true },
+      { label: "Published", detail: "The article went live on the website and issue page.", date: "29 January 2026", complete: true }
     ]
   }
 ];
@@ -133,9 +188,9 @@ export const approvalItems: ApprovalItem[] = [
     section: "Physics",
     leadEditor: "Noor Ellison",
     riskLevel: "Elevated",
-    status: "pending-chief-editor",
+    status: "pending",
     deadline: "10 March 2026",
-    summary: "Requires final sign-off because the opening argument contrasts benchmark claims with operational reliability in a commercially sensitive area."
+    summary: "Awaiting the final editor decision on evidence framing before the article can move into the accepted lane."
   },
   {
     id: "ap-402",
@@ -143,7 +198,7 @@ export const approvalItems: ApprovalItem[] = [
     section: "Technology & Innovation",
     leadEditor: "Helen Ivey",
     riskLevel: "Routine",
-    status: "approved-for-production",
+    status: "accepted",
     deadline: "Completed",
     summary: "All methodology caveats integrated. Ready for issue and newsletter packaging."
   },
@@ -153,9 +208,9 @@ export const approvalItems: ApprovalItem[] = [
     section: "Chemistry",
     leadEditor: "Adrian Nash",
     riskLevel: "Sensitive",
-    status: "hold",
+    status: "rejected",
     deadline: "12 March 2026",
-    summary: "Holding for one final source confirmation on industrial degradation pathways before publication."
+    summary: "Rejected after editorial screening because the industrial claims currently outpace the supporting evidence."
   }
 ];
 
@@ -184,7 +239,7 @@ export const publicationQueue: QueueItem[] = [
     destination: "Homepage lead",
     channel: "Website + social teaser",
     publishAt: "Pending approval",
-    owner: "Managing editor",
+    owner: "Editor",
     status: "blocked"
   },
   {
@@ -193,7 +248,7 @@ export const publicationQueue: QueueItem[] = [
     destination: "Issue landing page",
     channel: "Website + email",
     publishAt: "10 March 2026, 07:30 GMT",
-    owner: "Chief editor",
+    owner: "Editor",
     status: "awaiting-assets"
   }
 ];
@@ -201,10 +256,10 @@ export const publicationQueue: QueueItem[] = [
 export const notifications: NotificationItem[] = [
   {
     id: "n-100",
-    title: "Reviewer note returned with one flagged claim",
+    title: "Editorial note returned with one flagged claim",
     body: "Quantum Sensors in Noisy Laboratories needs a revised sentence on operational precision before final acceptance.",
     when: "18 minutes ago",
-    audience: ["author", "reviewer", "managingEditor", "chiefEditor"],
+    audience: ["author", "editor"],
     tone: "warning"
   },
   {
@@ -212,7 +267,7 @@ export const notifications: NotificationItem[] = [
     title: "Issue 12 package moved into production readiness",
     body: "Five supporting assets have passed proofing. Remaining dependency is editor’s note image treatment.",
     when: "1 hour ago",
-    audience: ["managingEditor", "chiefEditor", "productionEditor"],
+    audience: ["editor"],
     tone: "success"
   },
   {
@@ -243,7 +298,7 @@ export const emailPreviews: EmailPreview[] = [
     slug: "revision-request-author",
     name: "Author Revision Request",
     subject: "Revision requested: Quantum Sensors in Noisy Laboratories",
-    preheader: "One reviewer request and two line-level editorial refinements are awaiting your response.",
+    preheader: "One editorial request and two line-level refinements are awaiting your response.",
     audience: "Author communication",
     summary: "Operational email that summarises review recommendations and expected turnaround.",
     bodySections: [

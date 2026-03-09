@@ -5,7 +5,7 @@ import { getSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Publishing Platform",
-  description: "Protected editorial workspace for authors, reviewers, editors, and production teams."
+  description: "Protected editorial workspace for authors and editors."
 };
 
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {

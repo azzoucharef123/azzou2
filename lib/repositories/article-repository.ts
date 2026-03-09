@@ -59,6 +59,7 @@ export async function listDashboardArticles(db: DbClient = getPrisma()) {
       updatedAt: true,
       author: {
         select: {
+          id: true,
           fullName: true
         }
       },
@@ -147,6 +148,20 @@ export async function getArticleBySlug(slug: string, db: DbClient = getPrisma())
       versions: {
         orderBy: {
           versionNumber: "desc"
+        }
+      },
+      statusHistory: {
+        orderBy: {
+          createdAt: "asc"
+        },
+        include: {
+          actor: true
+        }
+      },
+      reviewerAssignments: {
+        include: {
+          reviewer: true,
+          review: true
         }
       },
       tags: {

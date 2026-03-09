@@ -1,14 +1,12 @@
-import { PrismaClient, UserRole, ArticleStatus, ReviewRecommendation, DecisionType, NotificationType } from "@prisma/client";
+import { PrismaClient, UserRole, ArticleStatus, ReviewRecommendation, NotificationType } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
 const sampleUsers = [
   { email: "author@microscope-magazine.com", password: "Author123!", fullName: "Dr Evelyn Hart", role: UserRole.author },
-  { email: "reviewer@microscope-magazine.com", password: "Reviewer123!", fullName: "Prof Elias Mercer", role: UserRole.reviewer },
-  { email: "editor@microscope-magazine.com", password: "Editor123!", fullName: "Noor Ellison", role: UserRole.editor },
-  { email: "chief@microscope-magazine.com", password: "Chief123!", fullName: "Helen Ivey", role: UserRole.chief_editor },
-  { email: "admin@microscope-magazine.com", password: "Admin123!", fullName: "Adrian Nash", role: UserRole.admin }
+  { email: "azzoucharef3@gmail.com", password: "Editor123!", fullName: "Azzou Charef", role: UserRole.editor },
+  { email: "editor@microscope-magazine.com", password: "Editor123!", fullName: "Noor Ellison", role: UserRole.editor }
 ];
 
 function looksLikePlaceholder(value: string) {
@@ -136,10 +134,7 @@ async function main() {
       authUsers.get(user.email) ??
       ({
         author: "11111111-1111-1111-1111-111111111111",
-        reviewer: "22222222-2222-2222-2222-222222222222",
-        editor: "33333333-3333-3333-3333-333333333333",
-        chief_editor: "44444444-4444-4444-4444-444444444444",
-        admin: "55555555-5555-5555-5555-555555555555"
+        editor: user.email === "azzoucharef3@gmail.com" ? "33333333-3333-3333-3333-333333333333" : "66666666-6666-6666-6666-666666666666"
       }[user.role] as string);
 
     const profile = await prisma.profile.upsert({
@@ -149,12 +144,7 @@ async function main() {
         fullName: user.fullName,
         initials: toInitials(user.fullName),
         primaryRole: user.role,
-        capabilities:
-          user.role === UserRole.editor
-            ? ["MANAGE_WORKFLOWS", "ASSIGN_REVIEWERS"]
-            : user.role === UserRole.chief_editor || user.role === UserRole.admin
-              ? ["MANAGE_WORKFLOWS", "ASSIGN_REVIEWERS", "MANAGE_QUEUE", "MANAGE_EMAILS", "VIEW_CHIEF_EDITOR_QUEUE"]
-              : []
+        capabilities: user.role === UserRole.editor ? ["MANAGE_WORKFLOWS", "MANAGE_QUEUE", "MANAGE_EMAILS"] : []
       },
       create: {
         authUserId,
@@ -162,12 +152,7 @@ async function main() {
         fullName: user.fullName,
         initials: toInitials(user.fullName),
         primaryRole: user.role,
-        capabilities:
-          user.role === UserRole.editor
-            ? ["MANAGE_WORKFLOWS", "ASSIGN_REVIEWERS"]
-            : user.role === UserRole.chief_editor || user.role === UserRole.admin
-              ? ["MANAGE_WORKFLOWS", "ASSIGN_REVIEWERS", "MANAGE_QUEUE", "MANAGE_EMAILS", "VIEW_CHIEF_EDITOR_QUEUE"]
-              : []
+        capabilities: user.role === UserRole.editor ? ["MANAGE_WORKFLOWS", "MANAGE_QUEUE", "MANAGE_EMAILS"] : []
       }
     });
 
@@ -177,15 +162,13 @@ async function main() {
   const physicsCategory = await prisma.category.findUniqueOrThrow({ where: { slug: "physics" } });
   const researchCategory = await prisma.category.findUniqueOrThrow({ where: { slug: "research-summaries" } });
   const authorId = profiles.get(UserRole.author)!;
-  const reviewerId = profiles.get(UserRole.reviewer)!;
   const editorId = profiles.get(UserRole.editor)!;
-  const chiefId = profiles.get(UserRole.chief_editor)!;
 
   const quantumArticle = await prisma.article.upsert({
     where: { slug: "quantum-sensors-in-noisy-labs" },
     update: {
       title: "Quantum Sensors in Noisy Laboratories",
-      status: ArticleStatus.awaiting_chief_editor_decision,
+      status: ArticleStatus.under_review,
       authorId,
       categoryId: physicsCategory.id,
       excerpt: "Why practical laboratory noise has become the real bottleneck in quantum sensing.",
@@ -196,7 +179,7 @@ async function main() {
     create: {
       slug: "quantum-sensors-in-noisy-labs",
       title: "Quantum Sensors in Noisy Laboratories",
-      status: ArticleStatus.awaiting_chief_editor_decision,
+      status: ArticleStatus.under_review,
       authorId,
       categoryId: physicsCategory.id,
       excerpt: "Why practical laboratory noise has become the real bottleneck in quantum sensing.",
@@ -274,8 +257,8 @@ async function main() {
         articleId: quantumArticle.id,
         actorId: editorId,
         fromStatus: ArticleStatus.submitted,
-        toStatus: ArticleStatus.awaiting_chief_editor_decision,
-        note: "Editor recommends acceptance pending chief editor sign-off."
+        toStatus: ArticleStatus.under_review,
+        note: "Lead editor moved the article into the active review lane."
       }
     ],
     skipDuplicates: true
@@ -285,7 +268,7 @@ async function main() {
     where: {
       articleId_reviewerId: {
         articleId: quantumArticle.id,
-        reviewerId
+        reviewerId: editorId
       }
     },
     update: {
@@ -293,7 +276,7 @@ async function main() {
     },
     create: {
       articleId: quantumArticle.id,
-      reviewerId,
+      reviewerId: editorId,
       assignedById: editorId,
       dueAt: new Date("2026-03-12T12:00:00Z")
     }
@@ -310,7 +293,7 @@ async function main() {
     create: {
       assignmentId: assignment.id,
       articleId: quantumArticle.id,
-      reviewerId,
+      reviewerId: editorId,
       recommendation: ReviewRecommendation.minor_revision,
       summary: "Strong methods framing with one section that needs narrower claims around operational precision.",
       confidentialNote: "Narrative opening is excellent. One claim needs tempering."
@@ -325,18 +308,6 @@ async function main() {
         title: "Revision request",
         body: "Tighten the paragraph on environmental noise and add one clarifying line on instrument calibration.",
         isInternal: false
-      }
-    ],
-    skipDuplicates: true
-  });
-
-  await prisma.chiefEditorDecision.createMany({
-    data: [
-      {
-        articleId: quantumArticle.id,
-        decidedById: chiefId,
-        decision: DecisionType.hold,
-        rationale: "Hold until the methods paragraph is revised and benchmark language is softened."
       }
     ],
     skipDuplicates: true
@@ -406,15 +377,9 @@ async function main() {
         body: "The editorial desk has requested one methods clarification before final approval."
       },
       {
-        recipientId: reviewerId,
-        type: NotificationType.review,
-        title: "Review acknowledged",
-        body: "Your review for Quantum Sensors in Noisy Laboratories has been received."
-      },
-      {
         recipientId: editorId,
         type: NotificationType.editorial,
-        title: "Chief editor hold",
+        title: "Editorial hold",
         body: "Quantum Sensors in Noisy Laboratories is on hold pending one final revision."
       }
     ],

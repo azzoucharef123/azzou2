@@ -16,7 +16,7 @@ The frontend is intentionally polished and publication-driven. The backend found
 - Prisma data model for articles, issues, reviews, decisions, notifications, attachments, and editorial operations
 - Route-handler API scaffolding under the App Router
 - Zod validation and service-layer workflow rules
-- Role-aware access for authors, reviewers, editors, chief editors, and admins
+- Role-aware access for authors and editors
 - Seed strategy for realistic local development data
 
 ## Screenshots

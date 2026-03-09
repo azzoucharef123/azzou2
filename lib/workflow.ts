@@ -3,18 +3,18 @@ import { ConflictError } from "@/lib/errors";
 
 export const WORKFLOW_TRANSITIONS: Record<ArticleStatus, ArticleStatus[]> = {
   draft: ["submitted"],
-  submitted: ["pending_editorial_check"],
-  pending_editorial_check: ["awaiting_reviewer_assignment", "editor_recommended_reject"],
-  awaiting_reviewer_assignment: ["under_review"],
-  under_review: ["review_completed", "minor_revision_requested", "major_revision_requested"],
-  review_completed: ["editor_recommended_accept", "editor_recommended_reject", "minor_revision_requested", "major_revision_requested"],
-  minor_revision_requested: ["resubmitted"],
-  major_revision_requested: ["resubmitted"],
-  resubmitted: ["under_review", "review_completed", "editor_recommended_accept", "editor_recommended_reject"],
-  editor_recommended_accept: ["awaiting_chief_editor_decision"],
-  editor_recommended_reject: ["awaiting_chief_editor_decision"],
+  submitted: ["pending_editorial_check", "under_review", "accepted", "rejected"],
+  pending_editorial_check: ["under_review", "accepted", "rejected", "minor_revision_requested", "major_revision_requested"],
+  awaiting_reviewer_assignment: ["under_review", "accepted", "rejected"],
+  under_review: ["review_completed", "minor_revision_requested", "major_revision_requested", "accepted", "rejected"],
+  review_completed: ["accepted", "rejected", "minor_revision_requested", "major_revision_requested"],
+  minor_revision_requested: ["resubmitted", "rejected"],
+  major_revision_requested: ["resubmitted", "rejected"],
+  resubmitted: ["under_review", "accepted", "rejected"],
+  editor_recommended_accept: ["accepted"],
+  editor_recommended_reject: ["rejected"],
   awaiting_chief_editor_decision: ["accepted", "rejected"],
-  accepted: ["scheduled_for_publication"],
+  accepted: ["scheduled_for_publication", "published"],
   rejected: [],
   scheduled_for_publication: ["published"],
   published: []
@@ -35,13 +35,13 @@ export function getWorkflowStepLabel(status: ArticleStatus) {
     case "submitted":
       return "Submission received";
     case "pending_editorial_check":
-      return "Awaiting editorial triage";
+      return "Pending editorial check";
     case "awaiting_reviewer_assignment":
-      return "Waiting for reviewer assignment";
+      return "Pending lead editor assignment";
     case "under_review":
-      return "Peer review in progress";
+      return "Under editor review";
     case "review_completed":
-      return "Reviews complete";
+      return "Editorial assessment complete";
     case "minor_revision_requested":
       return "Minor revision requested";
     case "major_revision_requested":
@@ -49,11 +49,11 @@ export function getWorkflowStepLabel(status: ArticleStatus) {
     case "resubmitted":
       return "Revision returned to editorial";
     case "editor_recommended_accept":
-      return "Editor recommends acceptance";
+      return "Editor marked for acceptance";
     case "editor_recommended_reject":
-      return "Editor recommends rejection";
+      return "Editor marked for rejection";
     case "awaiting_chief_editor_decision":
-      return "Awaiting chief editor decision";
+      return "Awaiting final editor decision";
     case "accepted":
       return "Accepted for publication";
     case "rejected":

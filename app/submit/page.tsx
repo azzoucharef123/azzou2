@@ -26,7 +26,7 @@ export default async function SubmitPage() {
   }
 
   if (session.activeRole !== "author") {
-    redirect("/platform?notice=Switch to the Author role to access the submission desk.");
+    redirect("/platform?notice=Only author accounts can access the submission desk.");
   }
 
   return (

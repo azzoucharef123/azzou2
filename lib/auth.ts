@@ -8,6 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AuthSession, EditorCapability, PlatformDesk, UserRole } from "@/types/domain";
 
 export type { AuthSession } from "@/types/domain";
+export const EDITOR_ACCOUNT_EMAIL = "azzoucharef3@gmail.com";
 
 export function buildAuthorName(input: string) {
   if (!input.includes("@")) {
@@ -41,47 +42,32 @@ export function getSafeRedirectTarget(value?: string | null) {
   return value;
 }
 
-export function getDefaultCapabilities(role: UserRole): EditorCapability[] {
-  switch (role) {
-    case "editor":
-      return ["MANAGE_WORKFLOWS", "ASSIGN_REVIEWERS"];
-    case "chief_editor":
-      return ["MANAGE_WORKFLOWS", "ASSIGN_REVIEWERS", "VIEW_CHIEF_EDITOR_QUEUE", "MANAGE_QUEUE", "MANAGE_EMAILS"];
-    case "admin":
-      return ["MANAGE_WORKFLOWS", "ASSIGN_REVIEWERS", "VIEW_CHIEF_EDITOR_QUEUE", "MANAGE_QUEUE", "MANAGE_EMAILS"];
-    default:
-      return [];
-  }
+export function isEditorAccountEmail(email?: string | null) {
+  return email?.trim().toLowerCase() === EDITOR_ACCOUNT_EMAIL;
 }
 
-export function deriveDisplayDesk(role: UserRole, capabilities: EditorCapability[]): PlatformDesk {
-  if (role === "admin" || role === "chief_editor" || capabilities.includes("VIEW_CHIEF_EDITOR_QUEUE")) {
-    return "chiefEditor";
-  }
-
-  if (role === "editor" && (capabilities.includes("MANAGE_QUEUE") || capabilities.includes("MANAGE_EMAILS"))) {
-    return "productionEditor";
-  }
-
-  if (role === "editor") {
-    return "managingEditor";
-  }
-
-  if (role === "reviewer") {
-    return "reviewer";
+export function resolveCanonicalRole(email?: string | null, requestedRole?: unknown): UserRole {
+  if (isEditorAccountEmail(email) || requestedRole === "editor") {
+    return "editor";
   }
 
   return "author";
+}
+
+export function getDefaultCapabilities(role: UserRole): EditorCapability[] {
+  return role === "editor"
+    ? ["MANAGE_WORKFLOWS", "MANAGE_QUEUE", "MANAGE_EMAILS"]
+    : [];
+}
+
+export function deriveDisplayDesk(role: UserRole, capabilities: EditorCapability[]): PlatformDesk {
+  void capabilities;
+  return role;
 }
 
 function deriveRoleFromUser(user: User): UserRole {
   const rawRole = user.user_metadata?.role ?? user.app_metadata?.role;
-
-  if (rawRole === "reviewer" || rawRole === "editor" || rawRole === "chief_editor" || rawRole === "admin") {
-    return rawRole;
-  }
-
-  return "author";
+  return resolveCanonicalRole(user.email, rawRole);
 }
 
 export function mapUserToSession(user: User, profile?: {
@@ -90,13 +76,13 @@ export function mapUserToSession(user: User, profile?: {
   email: string;
   fullName: string;
   initials: string;
-  primaryRole: UserRole;
+  primaryRole: string;
   capabilities: EditorCapability[];
   avatarPath?: string | null;
   biography?: string | null;
 } | null): AuthSession {
-  const primaryRole = profile?.primaryRole ?? deriveRoleFromUser(user);
-  const capabilities = profile?.capabilities ?? getDefaultCapabilities(primaryRole);
+  const primaryRole = resolveCanonicalRole(user.email, profile?.primaryRole ?? deriveRoleFromUser(user));
+  const capabilities = profile?.capabilities?.length ? profile.capabilities : getDefaultCapabilities(primaryRole);
   const name = profile?.fullName ?? buildAuthorName(user.email ?? "Science Contributor");
 
   return {

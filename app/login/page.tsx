@@ -38,7 +38,7 @@ export default async function LoginPage({
         <div className="space-y-2">
           <h2 className="display-title text-4xl font-semibold">Login</h2>
           <p className="text-sm leading-7 text-muted">
-            Authenticate with your Supabase-backed account to open author, reviewer, and editorial workflows.
+            Authenticate with your Supabase-backed account to open author submissions and editor workflows.
           </p>
         </div>
         {!env.hasSupabaseAuth ? (

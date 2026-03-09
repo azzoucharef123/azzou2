@@ -65,6 +65,11 @@ export const chiefEditorDecisionSchema = z.object({
   decision: z.enum(["accept", "reject", "hold"])
 });
 
+export const changeArticleStatusSchema = z.object({
+  note: z.string().max(2000).optional(),
+  status: z.enum(["pending_editorial_check", "under_review", "accepted", "rejected", "published"])
+});
+
 export const schedulePublicationSchema = z.object({
   publishAt: z.string().datetime()
 });

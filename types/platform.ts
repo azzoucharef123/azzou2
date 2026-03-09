@@ -43,10 +43,13 @@ export type WorkflowStage = {
 };
 
 export type WorkflowItem = {
+  id?: string;
   slug: string;
   title: string;
   category: string;
+  categorySlug?: string;
   author: string;
+  authorId?: string;
   status: WorkflowStatus;
   priority: WorkflowPriority;
   submittedAt: string;
@@ -54,7 +57,7 @@ export type WorkflowItem = {
   assignedTo: string;
   summary: string;
   currentStep: string;
-  reviewers: string[];
+  assignedEditors: string[];
   tags: string[];
   timeline: WorkflowStage[];
 };
@@ -73,7 +76,7 @@ export type ApprovalItem = {
   section: string;
   leadEditor: string;
   riskLevel: "Routine" | "Elevated" | "Sensitive";
-  status: "pending-chief-editor" | "approved-for-production" | "hold";
+  status: "pending" | "accepted" | "rejected";
   deadline: string;
   summary: string;
 };

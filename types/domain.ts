@@ -1,4 +1,4 @@
-export type UserRole = "author" | "reviewer" | "editor" | "chief_editor" | "admin";
+export type UserRole = "author" | "editor";
 
 export type EditorCapability =
   | "MANAGE_WORKFLOWS"
@@ -7,7 +7,7 @@ export type EditorCapability =
   | "MANAGE_EMAILS"
   | "VIEW_CHIEF_EDITOR_QUEUE";
 
-export type PlatformDesk = "author" | "reviewer" | "managingEditor" | "chiefEditor" | "productionEditor";
+export type PlatformDesk = "author" | "editor";
 
 export type AuthenticatedProfile = {
   id: string;
@@ -96,7 +96,7 @@ export type WorkflowItemDto = {
   updatedAt: string;
   assignedTo: string;
   currentStep: string;
-  reviewers: string[];
+  assignedEditors: string[];
   tags: string[];
 };
 
