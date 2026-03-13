@@ -21,7 +21,9 @@ export const platformNavigation: PlatformNavItem[] = [
   { label: "Editorial Decisions", href: "/platform/approvals", roles: ["editor"] },
   { label: "Publication Queue", href: "/platform/queue", roles: ["editor"] },
   { label: "Notifications", href: "/platform/notifications", roles: ["author", "editor"] },
-  { label: "Email Briefs", href: "/platform/email-previews", roles: ["editor"] }
+  { label: "Email Briefs", href: "/platform/email-previews", roles: ["editor"] },
+  { label: "Accepted Manuscripts", href: "/platform/accepted", roles: ["editor"] },
+  { label: "Accepted Articles", href: "/platform/author/accepted", roles: ["author"] }
 ];
 
 export const roleMetrics: Record<PlatformRole, PlatformMetric[]> = {
