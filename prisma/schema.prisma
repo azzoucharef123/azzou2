@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -73,6 +74,7 @@ enum AttachmentKind {
   article_attachment
   issue_cover
   issue_pdf
+  manuscript
 }
 
 enum EmailLogStatus {
@@ -223,6 +225,7 @@ model Submission {
   submittedById String         @db.Uuid
   submissionType SubmissionType @default(initial)
   coverLetter   String?
+  manuscriptPath String?
   createdAt     DateTime       @default(now())
   article       Article        @relation(fields: [articleId], references: [id], onDelete: Cascade)
   submittedBy   Profile        @relation(fields: [submittedById], references: [id])
