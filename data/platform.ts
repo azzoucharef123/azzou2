@@ -10,9 +10,19 @@ import {
   WorkflowItem
 } from "@/types/platform";
 
-export const platformRoles: { id: PlatformRole; label: string; summary: string }[] = [
-  { id: "author", label: "Author", summary: "Submission progress, revision requests, and active article packets." },
-  { id: "editor", label: "Editor", summary: "Workflow orchestration, article management, publication scheduling, and editorial decision-making." }
+export const platformRoles = [
+  {
+    id: "author" as PlatformRole,
+    label: "Author",
+    summary: "Submission progress, revision requests, and active article packets.",
+    viewableBy: ["author", "editor"] as PlatformRole[]
+  },
+  {
+    id: "editor" as PlatformRole,
+    label: "Editor",
+    summary: "Workflow orchestration, article management, publication scheduling, and editorial decision-making.",
+    viewableBy: ["editor"] as PlatformRole[]
+  }
 ];
 
 export const platformNavigation: PlatformNavItem[] = [
