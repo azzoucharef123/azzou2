@@ -73,6 +73,7 @@ export default async function WorkflowDetailPage({ params }: { params: Promise<{
           action={
             <div className="flex flex-col gap-3 sm:flex-row">
               {session.activeRole === "author" ? <ButtonLink href="/submit">Submit revision</ButtonLink> : null}
+              {session.activeRole === "editor" ? <ButtonLink href="/submit">Add Manuscript</ButtonLink> : null}
               <ButtonLink href="/platform/notifications" variant="secondary">
                 View alerts
               </ButtonLink>
