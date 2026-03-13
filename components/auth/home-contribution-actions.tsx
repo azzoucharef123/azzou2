@@ -8,7 +8,7 @@ export function HomeContributionActions() {
   const { session, loading } = useAuthSession();
   const chips = session
     ? session.activeRole === "author"
-      ? ["Commissioned features", "Research summaries", "Interviews & essays"]
+      ? ["My Drafts", "Under Review", "Published Articles"]
       : ["Editor dashboard", "Submission management", "Publication operations"]
     : ["Author registration", "Protected submissions", "Editorial workflow"];
 
@@ -24,8 +24,8 @@ export function HomeContributionActions() {
           session.activeRole === "author" ? (
             <>
               <ButtonLink href="/submit">Submit Article</ButtonLink>
-              <ButtonLink href="/platform" variant="secondary">
-                Open publishing platform
+              <ButtonLink href="/platform/submissions" variant="secondary">
+                Manage Submissions
               </ButtonLink>
             </>
           ) : (

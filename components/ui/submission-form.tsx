@@ -39,8 +39,20 @@ export function SubmissionForm() {
         <input className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45" required type="text" />
       </label>
       <label className="space-y-2 text-sm font-medium text-foreground">
+        Target audience
+        <input className="focus-ring h-12 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none dark:bg-slate-950/45" placeholder="e.g. General public, Researchers, Students" type="text" />
+      </label>
+      <label className="space-y-2 text-sm font-medium text-foreground">
         Abstract or pitch
         <textarea className="focus-ring min-h-40 w-full rounded-[1.5rem] border border-border bg-white/80 px-4 py-3 outline-none dark:bg-slate-950/45" required />
+      </label>
+      <label className="space-y-2 text-sm font-medium text-foreground">
+        Full manuscript
+        <input
+          accept=".pdf,.docx,.doc"
+          className="focus-ring h-14 w-full rounded-2xl border border-border bg-white/80 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100 dark:bg-slate-950/45 dark:file:bg-slate-900 dark:file:text-sky-300"
+          type="file"
+        />
       </label>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted">

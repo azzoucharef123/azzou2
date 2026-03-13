@@ -39,7 +39,7 @@ export function ArticleListing({
   );
 
   const filteredArticles = useMemo(() => {
-    const now = new Date("2026-03-07");
+    const now = new Date();
     const byQuery = deferredQuery.trim().toLowerCase();
 
     const matches = preparedArticles
@@ -81,9 +81,9 @@ export function ArticleListing({
                 className="focus-ring w-full bg-transparent text-sm outline-none placeholder:text-muted"
                 onChange={(event) => {
                   const value = event.target.value;
+                  setQuery(value);
                   startTransition(() => {
                     setVisibleCount(INITIAL_COUNT);
-                    setQuery(value);
                   });
                 }}
                 placeholder="Search by title, topic, or tag"
