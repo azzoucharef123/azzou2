@@ -33,7 +33,6 @@ export const platformNavigation: PlatformNavItem[] = [
   { label: "Notifications", href: "/platform/notifications", roles: ["author", "editor"] },
   { label: "Email Briefs", href: "/platform/email-previews", roles: ["editor"] },
   { label: "Accepted Manuscripts", href: "/platform/accepted", roles: ["editor"] },
-  { label: "Accepted Articles", href: "/platform/author/accepted", roles: ["author"] }
 ];
 
 export const roleMetrics: Record<PlatformRole, PlatformMetric[]> = {

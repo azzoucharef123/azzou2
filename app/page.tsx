@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Microscope, Orbit, Waves } from "lucide-react";
 import { ArticleCard } from "@/components/ui/article-card";
+import { AcceptedManuscriptSpotlight } from "@/components/ui/accepted-manuscript-spotlight";
 import { ButtonLink } from "@/components/ui/button";
 import { IssueCard } from "@/components/ui/issue-card";
 import { PersonCard } from "@/components/ui/person-card";
@@ -20,6 +21,7 @@ import {
   getIssues,
   getTrendingTopics
 } from "@/lib/content";
+import { getHomepageAcceptedManuscript } from "@/lib/services/accepted-manuscript-service";
 import { formatDate } from "@/lib/utils";
 import { siteConfig } from "@/data/site";
 
@@ -38,7 +40,8 @@ const HomeContributionActions = dynamic(
   }
 );
 
-export default function HomePage() {
+export default async function HomePage() {
+  const acceptedManuscript = await getHomepageAcceptedManuscript();
   const heroArticle = getHeroArticle();
   const featuredArticles = getFeaturedArticles().slice(0, 3);
   const latestArticles = getArticles().slice(0, 6);
@@ -176,6 +179,8 @@ export default function HomePage() {
           </div>
         </Reveal>
       </section>
+
+      {acceptedManuscript ? <AcceptedManuscriptSpotlight manuscript={acceptedManuscript} /> : null}
 
       <section className="shell mt-28 space-y-10">
         <SectionHeading
