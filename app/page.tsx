@@ -15,13 +15,11 @@ import {
   getAuthors,
   getCategories,
   getCurrentIssue,
-  getEditorsPicks,
-  getFeaturedArticles,
-  getHeroArticle,
   getIssues,
   getTrendingTopics
 } from "@/lib/content";
 import { getHomepageAcceptedManuscript } from "@/lib/services/accepted-manuscript-service";
+import { getHomepageEditorialContent } from "@/lib/services/homepage-publication-service";
 import { formatDate } from "@/lib/utils";
 import { siteConfig } from "@/data/site";
 
@@ -42,17 +40,13 @@ const HomeContributionActions = dynamic(
 
 export default async function HomePage() {
   const acceptedManuscript = await getHomepageAcceptedManuscript();
-  const heroArticle = getHeroArticle();
-  const featuredArticles = getFeaturedArticles().slice(0, 3);
-  const latestArticles = getArticles().slice(0, 6);
-  const editorsPicks = getEditorsPicks().slice(0, 3);
+  const { heroArticle, featuredArticles, latestArticles, editorsPicks, newsroomNotes } = await getHomepageEditorialContent();
   const categories = getCategories();
   const currentIssue = getCurrentIssue();
   const authors = getAuthors().slice(0, 3);
   const allArticles = getArticles();
   const issueCount = getIssues().length;
   const trendingTopics = getTrendingTopics(6);
-  const newsroomNotes = latestArticles.slice(0, 3);
 
   return (
     <div className="pb-10">

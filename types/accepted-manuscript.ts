@@ -8,3 +8,14 @@ export type AcceptedManuscriptRecord = {
   abstract: string;
   purchasePrice: string;
 };
+
+export type HomepagePublicationAction = "hide" | "delete" | "restore";
+
+export type HomepagePublicationManagerItem = {
+  slug: string;
+  title: string;
+  authorName: string;
+  publishedAt: string;
+  categorySlug: string;
+  visibility: "visible" | "hidden" | "deleted";
+};
