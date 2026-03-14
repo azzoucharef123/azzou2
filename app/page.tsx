@@ -47,6 +47,19 @@ export default async function HomePage() {
   const allArticles = getArticles();
   const issueCount = getIssues().length;
   const trendingTopics = getTrendingTopics(6);
+  const heroLead = heroArticle ?? {
+    slug: "",
+    title: "The homepage publication board is being refreshed.",
+    subtitle: "",
+    excerpt: "Editors can republish accepted work from the private platform at any time.",
+    authorName: "Editorial desk",
+    publishedAt: new Date().toISOString(),
+    categorySlug: "physics",
+    categoryName: "Editorial reset",
+    coverTone: "silver" as const,
+    coverMotif: "crystal" as const,
+    order: 0
+  };
 
   return (
     <div className="pb-10">
@@ -120,11 +133,11 @@ export default async function HomePage() {
               </div>
               <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-1">
                 <ScienceCover
-                  category={`Lead feature · ${formatDate(heroArticle.publishedAt)}`}
+                  category={`Lead feature · ${formatDate(heroLead.publishedAt)}`}
                   className="aspect-[4/5] min-h-[28rem]"
-                  motif={heroArticle.coverMotif}
-                  title={heroArticle.title}
-                  tone={heroArticle.coverTone}
+                  motif={heroLead.coverMotif}
+                  title={heroLead.title}
+                  tone={heroLead.coverTone}
                 />
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-1">
                   <div className="editorial-card rounded-[1.9rem] p-6">
@@ -156,11 +169,11 @@ export default async function HomePage() {
                     </div>
                     <div className="mt-6 border-t border-border pt-5">
                       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted">Hero feature</p>
-                      <h3 className="display-title mt-3 text-3xl font-semibold leading-[0.96]">{heroArticle.title}</h3>
-                      <p className="mt-3 text-sm leading-7 text-muted">{heroArticle.excerpt}</p>
+                      <h3 className="display-title mt-3 text-3xl font-semibold leading-[0.96]">{heroLead.title}</h3>
+                      <p className="mt-3 text-sm leading-7 text-muted">{heroLead.excerpt}</p>
                       <Link
                         className="focus-ring mt-5 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-foreground/82"
-                        href={`/articles/${heroArticle.slug}`}
+                        href={`/articles/${heroLead.slug}`}
                       >
                         Read feature
                         <ArrowRight className="h-4 w-4" />
@@ -185,7 +198,7 @@ export default async function HomePage() {
         />
         <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
           <Reveal>
-            <ArticleCard article={featuredArticles[0]} featured />
+            {featuredArticles[0] ? <ArticleCard article={featuredArticles[0]} featured /> : <div className="glass-panel rounded-[2.2rem] p-6 text-sm leading-7 text-muted sm:p-7">Homepage publications are being refreshed by the editorial desk.</div>}
           </Reveal>
           <div className="grid gap-6">
             {featuredArticles.slice(1).map((article, index) => (

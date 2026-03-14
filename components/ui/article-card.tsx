@@ -1,27 +1,37 @@
 import Link from "next/link";
 import { ArrowRight, Clock3 } from "lucide-react";
 import { getArticleContext, getReadingTime } from "@/lib/content";
-import { formatDate } from "@/lib/utils";
+import { calculateReadingTime, formatDate } from "@/lib/utils";
+import { HomepagePublicationView } from "@/types/accepted-manuscript";
 import { Article } from "@/types/content";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { ScienceCover } from "@/components/ui/science-cover";
+
+type DisplayArticle = Article | HomepagePublicationView;
+
+function isContentArticle(article: DisplayArticle): article is Article {
+  return "sections" in article;
+}
 
 export function ArticleCard({
   article,
   featured = false
 }: {
-  article: Article;
+  article: DisplayArticle;
   featured?: boolean;
 }) {
-  const { author, category } = getArticleContext(article);
-  const readingTime = getReadingTime(article);
+  const categoryName = isContentArticle(article) ? getArticleContext(article).category.name : article.categoryName;
+  const authorName = isContentArticle(article) ? getArticleContext(article).author.name : article.authorName;
+  const readingTime = isContentArticle(article)
+    ? getReadingTime(article)
+    : calculateReadingTime([article.title, article.subtitle, article.excerpt].join(" "));
 
   return (
     <article className="editorial-card group overflow-hidden rounded-[2.15rem] transition duration-300 hover:-translate-y-1">
       <Link className="block" href={`/articles/${article.slug}`}>
         <div className={featured ? "p-4 sm:p-5" : "p-4"}>
           <ScienceCover
-            category={category.name}
+            category={categoryName}
             className={featured ? "aspect-[16/10] min-h-[18rem]" : "aspect-[16/11]"}
             motif={article.coverMotif}
             tone={article.coverTone}
@@ -44,7 +54,7 @@ export function ArticleCard({
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-sm text-muted">
           <div className="flex items-center gap-3">
-            <span>{author.name}</span>
+            <span>{authorName}</span>
             <span className="inline-flex items-center gap-1">
               <Clock3 className="h-4 w-4" />
               {readingTime} min read

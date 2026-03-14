@@ -1,5 +1,5 @@
-
 import "server-only";
+import { unstable_noStore as noStore, revalidatePath } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { acceptedManuscriptFallback } from "@/data/accepted-manuscript";
 import { AuthSession } from "@/lib/auth";
@@ -19,6 +19,8 @@ function ensureDatabaseWritable() {
 }
 
 export async function getHomepageAcceptedManuscript(): Promise<AcceptedManuscriptRecord | null> {
+  noStore();
+
   if (!env.hasDatabaseUrl) {
     return acceptedManuscriptFallback;
   }
@@ -39,6 +41,8 @@ export async function saveHomepageAcceptedManuscript(session: AuthSession, paylo
 
   const parsed = acceptedManuscriptSchema.parse(payload);
   await upsertAppSetting(HOMEPAGE_ACCEPTED_MANUSCRIPT_KEY, parsed as Prisma.InputJsonValue);
+  revalidatePath("/");
+  revalidatePath("/platform/accepted");
 
   return parsed;
 }

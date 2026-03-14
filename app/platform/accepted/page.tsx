@@ -63,7 +63,7 @@ export default async function PlatformAcceptedManuscriptsPage() {
         <AcceptedManuscriptForm canPersist={env.hasDatabaseUrl} initialData={manuscript} />
       </Reveal>
       <Reveal delay={0.12}>
-        <HomepagePublicationManager canPersist={homepagePublications.canPersist} groups={homepagePublications} />
+        <HomepagePublicationManager data={homepagePublications} />
       </Reveal>
     </div>
   );
